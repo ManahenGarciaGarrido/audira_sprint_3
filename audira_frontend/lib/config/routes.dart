@@ -165,10 +165,15 @@ class AppRoutes {
         );
 
       case editPlaylist:
-        ScaffoldMessenger.of(settings.arguments as BuildContext).showSnackBar(
-          const SnackBar(content: Text('Edit Playlist - Coming soon')),
-        );
-        return MaterialPageRoute(builder: (_) => const MainLayout());
+        // Soportar el ID como argumento
+        final playlistId = settings.arguments as int?;
+        if (playlistId != null) {
+          return MaterialPageRoute(
+            builder: (_) => CreatePlaylistScreen(playlistId: playlistId),
+          );
+        }
+        // Si no hay ID, crear nueva playlist
+        return MaterialPageRoute(builder: (_) => const CreatePlaylistScreen());
 
       // User statistics
       case userStats:
