@@ -60,6 +60,12 @@ dependencies:
   # File Picker
   file_picker: ^8.1.6
 
+  # Permissions
+  permission_handler: ^11.0.1
+
+  # Path Provider
+  path_provider: ^2.1.1
+
   # Share
   share_plus: ^10.1.2
 
