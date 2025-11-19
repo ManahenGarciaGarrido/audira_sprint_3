@@ -23,6 +23,7 @@ import '../../../core/api/services/rating_service.dart';
 import '../../../core/api/services/library_service.dart';
 import '../../../features/rating/widgets/rating_dialog.dart';
 import '../../../features/rating/widgets/rating_list.dart';
+import '../../../features/downloads/widgets/download_button.dart';
 
 class SongDetailScreen extends StatefulWidget {
   final int songId;
@@ -621,6 +622,9 @@ class _SongDetailScreenState extends State<SongDetailScreen>
             icon: Icon(isFavorite ? Icons.favorite : Icons.favorite_border),
             color: isFavorite ? Colors.red : AppTheme.primaryBlue,
           ),
+          // Botón de descarga
+          // GA01-135: Botón y permisos (solo si comprado)
+          if (_song != null) DownloadButton(song: _song!),
         ],
       ),
     ).animate().fadeIn(delay: 200.ms);

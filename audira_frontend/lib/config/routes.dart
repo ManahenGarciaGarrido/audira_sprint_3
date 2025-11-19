@@ -35,6 +35,7 @@ import '../features/studio/screens/upload_album_screen.dart';
 import '../features/studio/screens/studio_stats_screen.dart';
 import '../features/library/screens/library_screen.dart';
 import '../features/receipt/screens/receipt_screen.dart';
+import '../features/downloads/screens/downloads_screen.dart';
 
 class AppRoutes {
   static const String home = '/';
@@ -74,6 +75,7 @@ class AppRoutes {
   static const String adminContacts = '/admin/contacts';
   static const String adminOrders = '/admin/orders';
   static const String adminStats = '/admin/stats';
+  static const String downloads = '/downloads';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -224,6 +226,9 @@ class AppRoutes {
 
       case adminStats:
         return MaterialPageRoute(builder: (_) => const AdminStatsScreen());
+
+      case downloads:
+        return MaterialPageRoute(builder: (_) => const DownloadsScreen());
 
       default:
         return MaterialPageRoute(

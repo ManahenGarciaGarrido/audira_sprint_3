@@ -6,6 +6,7 @@ import 'core/providers/auth_provider.dart';
 import 'core/providers/cart_provider.dart';
 import 'core/providers/audio_provider.dart';
 import 'core/providers/library_provider.dart';
+import 'core/providers/download_provider.dart';
 import 'features/home/screens/main_layout.dart';
 
 void main() {
@@ -28,6 +29,7 @@ class _AudiraAppState extends State<AudiraApp> {
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => AudioProvider()),
         ChangeNotifierProvider(create: (_) => LibraryProvider()),
+        ChangeNotifierProvider(create: (_) => DownloadProvider()),
       ],
       child: const _AppContent(),
     );
@@ -54,18 +56,20 @@ class _AppContentState extends State<_AppContent> {
     final authProvider = Provider.of<AuthProvider>(context, listen: true);
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
     final libraryProvider = Provider.of<LibraryProvider>(context, listen: false);
+    final downloadProvider = Provider.of<DownloadProvider>(context, listen: false);
 
     // Check if user just logged in or changed
     if (authProvider.isAuthenticated && authProvider.currentUser != null) {
       final currentUserId = authProvider.currentUser!.id;
 
       if (_lastUserId != currentUserId) {
-        // User just logged in or changed, load cart and library
+        // User just logged in or changed, load cart, library, and downloads
         _lastUserId = currentUserId;
         // Schedule for after the current frame to avoid calling during build
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           await cartProvider.loadCart(currentUserId);
           await libraryProvider.loadLibrary(currentUserId);
+          await downloadProvider.initialize();
         });
       }
     } else if (_lastUserId != null) {
