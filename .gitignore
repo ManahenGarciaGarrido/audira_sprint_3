@@ -1,0 +1,34 @@
+# Java/Maven
+**/target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+*.tmp
+
+# Flutter/Dart
+**/build/
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.packages
+**/.pub-cache/
+**/.pub/
+**/pubspec.lock
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Docker volumes
+uploads/

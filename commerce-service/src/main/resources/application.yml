@@ -1,0 +1,42 @@
+server:
+  port: 9004
+
+spring:
+  application:
+    name: commerce-service
+  datasource:
+    url: jdbc:postgresql://172.16.0.4:5432/audira_commerce
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          time_zone: Europe/Madrid
+
+# Service URLs for inter-service communication
+services:
+  user:
+    url: http://api-gateway:8080/api/users
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://172.16.0.4:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+    hostname: ${spring.cloud.client.ip-address}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics

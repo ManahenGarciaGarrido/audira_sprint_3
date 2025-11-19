@@ -1,0 +1,58 @@
+server:
+  port: 9001
+
+spring:
+  application:
+    name: community-service
+  datasource:
+    url: jdbc:postgresql://172.16.0.4:5432/audira_community
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          time_zone: Europe/Madrid
+
+jwt:
+  secret: audira-secret-key-for-jwt-token-generation-should-be-at-least-512-bits
+  expiration: 86400000  # 24 hours in milliseconds
+
+file:
+  upload-dir: uploads
+  base-url: http://68.221.240.178
+  service:
+    url: http://file-service:9005  # URL del file-service para subida de archivos
+
+spring.servlet.multipart:
+  enabled: true
+  max-file-size: 50MB
+  max-request-size: 50MB
+  
+eureka:
+  client:
+    service-url:
+      defaultZone: http://172.16.0.4:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+    hostname: ${spring.cloud.client.ip-address}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    io.audira.community.security: DEBUG
+    io.audira.community.controller: DEBUG

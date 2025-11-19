@@ -1,0 +1,222 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Databases - One per epic service
+  postgres-community:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: audira_community
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-community-data:/var/lib/postgresql/data
+    networks:
+      - audira-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  postgres-commerce:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: audira_commerce
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres-commerce-data:/var/lib/postgresql/data
+    networks:
+      - audira-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-catalog:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: audira_catalog
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-catalog-data:/var/lib/postgresql/data
+    networks:
+      - audira-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  config-server:
+    build:
+      context: . 
+      dockerfile: ./config-server/Dockerfile
+    ports:
+      - "8888:8888"
+    networks:
+      - audira-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  discovery-server:
+    build:
+      context: . 
+      dockerfile: ./discovery-server/Dockerfile
+    ports:
+      - "8761:8761"
+    depends_on:
+      - config-server
+    networks:
+      - audira-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  api-gateway:
+    build:
+      context: . 
+      dockerfile: ./api-gateway/Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - config-server
+      - discovery-server
+    networks:
+      - audira-network
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # ÉPICA 1: Community Service (Users, Metrics, Ratings, Communication)
+  community-service:
+    build:
+      context: . 
+      dockerfile: ./community-service/Dockerfile
+    ports:
+      - "9001:9001"
+    volumes:
+      - audira-uploads:/uploads  # 🔥 Volume persistente compartido
+    depends_on:
+      postgres-community:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    networks:
+      - audira-network
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-community:5432/audira_community
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9001/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+  
+  # File Service - Gestión de archivos de audio e imágenes
+  file-service:
+    build:
+      context: .
+      dockerfile: ./file-service/Dockerfile
+    ports:
+      - "9005:9005"
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+    networks:
+      - audira-network
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+    volumes:
+      - audira-uploads:/uploads  # Volumen persistente compartido para archivos
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9005/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ÉPICA 2: Music Catalog Service (Genres, Albums, Songs, Collaborations)
+  music-catalog-service:
+    build:
+      context: . 
+      dockerfile: ./music-catalog-service/Dockerfile
+    ports:
+      - "9002:9002"
+    depends_on:
+      postgres-catalog:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+    networks:
+      - audira-network
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-catalog:5432/audira_catalog
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9002/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+      
+  # ÉPICA 3: Playback Service (Playlists, Library, Playback, Queue, History)
+
+  # ÉPICA 4: Commerce Service (Products, Store, Cart, Orders, Payments)
+  commerce-service:
+    build:
+      context: . 
+      dockerfile: ./commerce-service/Dockerfile
+    ports:
+      - "9004:9004"
+    depends_on:
+      postgres-commerce:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+    networks:
+      - audira-network
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-commerce:5432/audira_commerce
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9004/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+networks:
+  audira-network:
+    driver: bridge
+
+volumes:
+  postgres-community-data:
+  postgres-commerce-data:
+  postgres-catalog-data:
+  audira-uploads:
+    driver: local
