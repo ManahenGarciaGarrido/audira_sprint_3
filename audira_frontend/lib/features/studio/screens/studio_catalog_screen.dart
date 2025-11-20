@@ -617,11 +617,11 @@ class _StudioCatalogScreenState extends State<StudioCatalogScreen>
             ),
             subtitle: Text(
                 '\$${song.price.toStringAsFixed(2)} • ${song.durationFormatted} • ${song.plays} plays'),
-            trailing: PopupMenuButton(
-              itemBuilder: (context) => [
-                PopupMenuItem(
+            trailing: PopupMenuButton<String>(
+              itemBuilder: (context) => <PopupMenuEntry<String>>[
+                const PopupMenuItem<String>(
                   value: 'edit',
-                  child: const Row(
+                  child: Row(
                     children: [
                       Icon(Icons.edit, color: AppTheme.primaryBlue),
                       SizedBox(width: 8),
@@ -629,7 +629,7 @@ class _StudioCatalogScreenState extends State<StudioCatalogScreen>
                     ],
                   ),
                 ),
-                PopupMenuItem(
+                PopupMenuItem<String>(
                   value: 'toggle',
                   child: Row(
                     children: [
@@ -645,7 +645,7 @@ class _StudioCatalogScreenState extends State<StudioCatalogScreen>
                   ),
                 ),
                 const PopupMenuDivider(),
-                const PopupMenuItem(
+                const PopupMenuItem<String>(
                   value: 'delete',
                   child: Row(
                     children: [
@@ -720,11 +720,11 @@ class _StudioCatalogScreenState extends State<StudioCatalogScreen>
               ],
             ),
             subtitle: Text('\$${album.price.toStringAsFixed(2)}'),
-            trailing: PopupMenuButton(
-              itemBuilder: (context) => [
-                PopupMenuItem(
+            trailing: PopupMenuButton<String>(
+              itemBuilder: (context) => <PopupMenuEntry<String>>[
+                const PopupMenuItem<String>(
                   value: 'edit',
-                  child: const Row(
+                  child: Row(
                     children: [
                       Icon(Icons.edit, color: AppTheme.primaryBlue),
                       SizedBox(width: 8),
@@ -732,7 +732,7 @@ class _StudioCatalogScreenState extends State<StudioCatalogScreen>
                     ],
                   ),
                 ),
-                PopupMenuItem(
+                PopupMenuItem<String>(
                   value: 'toggle',
                   child: Row(
                     children: [
@@ -748,7 +748,7 @@ class _StudioCatalogScreenState extends State<StudioCatalogScreen>
                   ),
                 ),
                 const PopupMenuDivider(),
-                const PopupMenuItem(
+                const PopupMenuItem<String>(
                   value: 'delete',
                   child: Row(
                     children: [
