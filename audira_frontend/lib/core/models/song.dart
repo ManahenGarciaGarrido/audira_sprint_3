@@ -17,6 +17,7 @@ class Song extends Equatable {
   final String? lyrics;
   final int? trackNumber;
   final int plays;
+  final bool published;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -37,6 +38,7 @@ class Song extends Equatable {
     this.lyrics,
     this.trackNumber,
     this.plays = 0,
+    this.published = false,
     this.createdAt,
     this.updatedAt,
   });
@@ -67,6 +69,7 @@ class Song extends Equatable {
       lyrics: json['lyrics'] as String?,
       trackNumber: json['trackNumber'] as int?,
       plays: json['plays'] as int? ?? 0,
+      published: json['published'] as bool? ?? false,
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'] as String)
           : null,
@@ -94,6 +97,7 @@ class Song extends Equatable {
       'lyrics': lyrics,
       'trackNumber': trackNumber,
       'plays': plays,
+      'published': published,
       'createdAt': createdAt?.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
     };
@@ -116,6 +120,7 @@ class Song extends Equatable {
     String? lyrics,
     int? trackNumber,
     int? plays,
+    bool? published,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -136,6 +141,7 @@ class Song extends Equatable {
       lyrics: lyrics ?? this.lyrics,
       trackNumber: trackNumber ?? this.trackNumber,
       plays: plays ?? this.plays,
+      published: published ?? this.published,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -159,6 +165,7 @@ class Song extends Equatable {
         lyrics,
         trackNumber,
         plays,
+        published,
         createdAt,
         updatedAt,
       ];
