@@ -11,13 +11,14 @@ import java.util.List;
 
 @Repository
 public interface AlbumRepository extends JpaRepository<Album, Long>{
+    // Métodos sin filtro de publicación (para studio/admin)
     List<Album> findTop20ByOrderByCreatedAtDesc();
-    
+
     List<Album> findByArtistId(Long artistId);
-    
+
     @Query("SELECT a FROM Album a ORDER BY a.releaseDate DESC")
     List<Album> findRecentAlbums();
-    
+
     @Query("SELECT a FROM Album a WHERE LOWER(a.title) LIKE LOWER(CONCAT('%', :query, '%'))")
     Page<Album> searchByTitle(@Param("query") String query, Pageable pageable);
 
@@ -26,4 +27,19 @@ public interface AlbumRepository extends JpaRepository<Album, Long>{
 
     @Query("SELECT a FROM Album a WHERE LOWER(a.title) LIKE LOWER(CONCAT('%', :query, '%')) OR a.artistId IN :artistIds")
     Page<Album> searchByTitleOrArtistIds(@Param("query") String query, @Param("artistIds") List<Long> artistIds, Pageable pageable);
+
+    // Métodos con filtro de publicación (para vistas públicas)
+    List<Album> findTop20ByPublishedTrueOrderByCreatedAtDesc();
+
+    @Query("SELECT a FROM Album a WHERE a.published = true ORDER BY a.releaseDate DESC")
+    List<Album> findRecentPublishedAlbums();
+
+    @Query("SELECT a FROM Album a WHERE a.published = true AND LOWER(a.title) LIKE LOWER(CONCAT('%', :query, '%'))")
+    Page<Album> searchPublishedByTitle(@Param("query") String query, Pageable pageable);
+
+    @Query("SELECT a FROM Album a WHERE a.published = true AND a.artistId IN :artistIds")
+    Page<Album> searchPublishedByArtistIds(@Param("artistIds") List<Long> artistIds, Pageable pageable);
+
+    @Query("SELECT a FROM Album a WHERE a.published = true AND (LOWER(a.title) LIKE LOWER(CONCAT('%', :query, '%')) OR a.artistId IN :artistIds)")
+    Page<Album> searchPublishedByTitleOrArtistIds(@Param("query") String query, @Param("artistIds") List<Long> artistIds, Pageable pageable);
 }

@@ -7,6 +7,7 @@ import '../../../core/models/song.dart';
 import '../../../core/models/album.dart';
 import '../../../core/models/artist.dart';
 import '../../../core/api/services/discovery_service.dart';
+import '../../../core/api/services/music_service.dart';
 import '../../../config/theme.dart';
 import '../../common/widgets/song_list_item.dart';
 import '../../common/widgets/album_list_item.dart';
@@ -24,6 +25,7 @@ class _SearchScreenState extends State<SearchScreen>
     with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   final DiscoveryService _discoveryService = DiscoveryService();
+  final MusicService _musicService = MusicService();
   final ScrollController _songsScrollController = ScrollController();
   final ScrollController _albumsScrollController = ScrollController();
 
@@ -86,16 +88,16 @@ class _SearchScreenState extends State<SearchScreen>
     setState(() => _isLoading = true);
 
     try {
-      final songsResponse = await _discoveryService.getTrendingSongs(limit: 10);
-      final albumsResponse =
-          await _discoveryService.getTrendingAlbums(limit: 10);
+      // Solo mostrar contenido publicado en el buscador
+      final songsResponse = await _musicService.getTopPublishedSongs();
+      final albumsResponse = await _musicService.getRecentPublishedAlbums();
 
       if (songsResponse.success && songsResponse.data != null) {
-        _songs = songsResponse.data!;
+        _songs = songsResponse.data!.take(10).toList();
       }
 
       if (albumsResponse.success && albumsResponse.data != null) {
-        _albums = albumsResponse.data!;
+        _albums = albumsResponse.data!.take(10).toList();
       }
     } catch (e) {
       debugPrint('Error loading trending content: $e');
@@ -130,30 +132,25 @@ class _SearchScreenState extends State<SearchScreen>
     });
 
     try {
-      final songsResponse = await _discoveryService.searchSongs(
-        query,
-        page: 0,
-        size: 20,
-      );
+      // Solo buscar contenido publicado
+      final songsResponse = await _musicService.searchPublishedSongs(query);
       if (songsResponse.success && songsResponse.data != null) {
-        final data = songsResponse.data!;
-        _songs = List<Song>.from(data['songs'] as List);
-        _hasMoreSongs = data['hasMore'] as bool;
+        _songs = songsResponse.data!;
+        _hasMoreSongs = false; // Sin paginación por ahora
         _currentSongPage = 0;
       } else {
         _songs = [];
         _hasMoreSongs = false;
       }
 
-      final albumsResponse = await _discoveryService.searchAlbums(
-        query,
-        page: 0,
-        size: 20,
-      );
+      // No hay endpoint de búsqueda de álbumes todavía, usar los recientes filtrados
+      final albumsResponse = await _musicService.getRecentPublishedAlbums();
       if (albumsResponse.success && albumsResponse.data != null) {
-        final data = albumsResponse.data!;
-        _albums = List<Album>.from(data['albums'] as List);
-        _hasMoreAlbums = data['hasMore'] as bool;
+        // Filtrar álbumes por query
+        _albums = albumsResponse.data!
+            .where((album) => album.name.toLowerCase().contains(query.toLowerCase()))
+            .toList();
+        _hasMoreAlbums = false;
         _currentAlbumPage = 0;
       } else {
         _albums = [];

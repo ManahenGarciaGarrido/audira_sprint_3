@@ -119,4 +119,25 @@ public class SongController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    // Endpoints públicos que solo retornan contenido publicado
+    @GetMapping("/public/recent")
+    public ResponseEntity<List<Song>> getRecentPublishedSongs() {
+        return ResponseEntity.ok(songService.getRecentPublishedSongs());
+    }
+
+    @GetMapping("/public/top")
+    public ResponseEntity<List<Song>> getTopPublishedSongs() {
+        return ResponseEntity.ok(songService.getTopPublishedSongsByPlays());
+    }
+
+    @GetMapping("/public/search")
+    public ResponseEntity<List<Song>> searchPublishedSongs(@RequestParam String query) {
+        return ResponseEntity.ok(songService.searchPublishedSongs(query));
+    }
+
+    @GetMapping("/public/genre/{genreId}")
+    public ResponseEntity<List<Song>> getPublishedSongsByGenre(@PathVariable Long genreId) {
+        return ResponseEntity.ok(songService.getPublishedSongsByGenre(genreId));
+    }
 }

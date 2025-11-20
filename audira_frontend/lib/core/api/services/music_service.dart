@@ -197,6 +197,52 @@ class MusicService {
     return ApiResponse(success: false, error: response.error);
   }
 
+  // Public endpoints - Solo retornan contenido publicado
+  Future<ApiResponse<List<Song>>> getRecentPublishedSongs() async {
+    final response = await _apiClient.get('${AppConstants.songsUrl}/public/recent', requiresAuth: false);
+    if (response.success && response.data != null) {
+      final songs = (response.data as List).map((json) => Song.fromJson(json)).toList();
+      return ApiResponse(success: true, data: songs);
+    }
+    return ApiResponse(success: false, error: response.error);
+  }
+
+  Future<ApiResponse<List<Song>>> getTopPublishedSongs() async {
+    final response = await _apiClient.get('${AppConstants.songsUrl}/public/top', requiresAuth: false);
+    if (response.success && response.data != null) {
+      final songs = (response.data as List).map((json) => Song.fromJson(json)).toList();
+      return ApiResponse(success: true, data: songs);
+    }
+    return ApiResponse(success: false, error: response.error);
+  }
+
+  Future<ApiResponse<List<Song>>> searchPublishedSongs(String query) async {
+    final response = await _apiClient.get('${AppConstants.songsUrl}/public/search?query=$query', requiresAuth: false);
+    if (response.success && response.data != null) {
+      final songs = (response.data as List).map((json) => Song.fromJson(json)).toList();
+      return ApiResponse(success: true, data: songs);
+    }
+    return ApiResponse(success: false, error: response.error);
+  }
+
+  Future<ApiResponse<List<Song>>> getPublishedSongsByGenre(int genreId) async {
+    final response = await _apiClient.get('${AppConstants.songsUrl}/public/genre/$genreId', requiresAuth: false);
+    if (response.success && response.data != null) {
+      final songs = (response.data as List).map((json) => Song.fromJson(json)).toList();
+      return ApiResponse(success: true, data: songs);
+    }
+    return ApiResponse(success: false, error: response.error);
+  }
+
+  Future<ApiResponse<List<Album>>> getRecentPublishedAlbums() async {
+    final response = await _apiClient.get('${AppConstants.albumsUrl}/public/latest-releases', requiresAuth: false);
+    if (response.success && response.data != null) {
+      final albums = (response.data as List).map((json) => Album.fromJson(json)).toList();
+      return ApiResponse(success: true, data: albums);
+    }
+    return ApiResponse(success: false, error: response.error);
+  }
+
   // Delete methods (Admin only)
   Future<ApiResponse<void>> deleteSong(int id) async {
     final response = await _apiClient.delete('${AppConstants.songsUrl}/$id');

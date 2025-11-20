@@ -28,6 +28,7 @@ class _UploadAlbumScreenState extends State<UploadAlbumScreen> {
 
   bool _showPreview = false;
   bool _isUploading = false;
+  bool _publishNow = true; // Publicar inmediatamente por defecto
   double _uploadProgress = 0.0;
   String? _coverImagePath;
   List<Song> _selectedSongs = [];
@@ -168,6 +169,7 @@ class _UploadAlbumScreenState extends State<UploadAlbumScreen> {
             : null,
         'discountPercentage': 15.0,
         'songIds': _selectedSongs.map((s) => s.id).toList(),
+        'published': _publishNow, // Incluir estado de publicación
       };
 
       final createResponse = await musicService.createAlbum(albumData);
@@ -479,6 +481,35 @@ class _UploadAlbumScreenState extends State<UploadAlbumScreen> {
             ],
 
             const SizedBox(height: 24),
+
+            // Publicar inmediatamente
+            Card(
+              child: SwitchListTile(
+                title: const Text(
+                  '¿Publicar inmediatamente?',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(
+                  _publishNow
+                      ? 'El álbum será visible para todos los usuarios'
+                      : 'El álbum quedará oculto hasta que lo publiques manualmente',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                ),
+                value: _publishNow,
+                onChanged: (value) {
+                  setState(() {
+                    _publishNow = value;
+                  });
+                },
+                activeColor: AppTheme.primaryBlue,
+                secondary: Icon(
+                  _publishNow ? Icons.visibility : Icons.visibility_off,
+                  color: _publishNow ? AppTheme.primaryBlue : Colors.grey,
+                ),
+              ),
+            ).animate().fadeIn(delay: 275.ms),
+
+            const SizedBox(height: 16),
 
             // Botón de crear álbum
             SizedBox(
