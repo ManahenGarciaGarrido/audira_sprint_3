@@ -114,7 +114,8 @@ class _CreatePlaylistScreenState extends State<CreatePlaylistScreen> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Playlist "${playlist.name}" creada exitosamente'),
+                content:
+                    Text('Playlist "${playlist.name}" creada exitosamente'),
                 backgroundColor: Colors.green,
               ),
             );
@@ -252,7 +253,8 @@ class _CreatePlaylistScreenState extends State<CreatePlaylistScreen> {
         try {
           final libraryProvider = context.read<LibraryProvider>();
           for (final song in selectedSongs) {
-            await libraryProvider.addSongToPlaylist(widget.playlistId!, song.id);
+            await libraryProvider.addSongToPlaylist(
+                widget.playlistId!, song.id);
           }
           // Recargar datos
           await _loadPlaylistData();
@@ -431,7 +433,7 @@ class _CreatePlaylistScreenState extends State<CreatePlaylistScreen> {
                 onChanged: (value) {
                   setState(() => _isPublic = value);
                 },
-                activeColor: AppTheme.primaryBlue,
+                activeThumbColor: AppTheme.primaryBlue,
                 secondary: Icon(
                   _isPublic ? Icons.public : Icons.lock,
                   color: _isPublic ? AppTheme.primaryBlue : AppTheme.textGrey,
@@ -620,7 +622,8 @@ class _CreatePlaylistScreenState extends State<CreatePlaylistScreen> {
                       style: const TextStyle(color: Colors.white70),
                     ),
                     const SizedBox(width: 16),
-                    const Icon(Icons.music_note, size: 16, color: Colors.white70),
+                    const Icon(Icons.music_note,
+                        size: 16, color: Colors.white70),
                     const SizedBox(width: 4),
                     Text(
                       '${_selectedSongs.length} ${_selectedSongs.length == 1 ? "canción" : "canciones"}',
@@ -711,9 +714,7 @@ class _CreatePlaylistScreenState extends State<CreatePlaylistScreen> {
           children: [
             Expanded(
               child: OutlinedButton(
-                onPressed: _isLoading
-                    ? null
-                    : () => Navigator.pop(context),
+                onPressed: _isLoading ? null : () => Navigator.pop(context),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),

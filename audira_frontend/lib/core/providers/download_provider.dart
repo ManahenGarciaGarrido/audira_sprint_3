@@ -3,7 +3,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'dart:io';
 import 'package:dio/dio.dart';
 import '../models/song.dart';
 import '../models/downloaded_song.dart';
@@ -308,7 +307,8 @@ class DownloadProvider with ChangeNotifier {
         _downloadedSongs.map((s) => s.toJson()).toList(),
       );
       await prefs.setString('downloaded_songs', downloadsJson);
-      print('Registro de descargas guardado: ${_downloadedSongs.length} canciones');
+      print(
+          'Registro de descargas guardado: ${_downloadedSongs.length} canciones');
     } catch (e) {
       print('Error al guardar registro de descargas: $e');
     }
@@ -323,11 +323,11 @@ class DownloadProvider with ChangeNotifier {
 
       if (downloadsJson != null) {
         final downloadsList = jsonDecode(downloadsJson) as List;
-        _downloadedSongs = downloadsList
-            .map((json) => DownloadedSong.fromJson(json))
-            .toList();
+        _downloadedSongs =
+            downloadsList.map((json) => DownloadedSong.fromJson(json)).toList();
 
-        print('Registro de descargas cargado: ${_downloadedSongs.length} canciones');
+        print(
+            'Registro de descargas cargado: ${_downloadedSongs.length} canciones');
 
         // Verificar integridad de archivos
         await verifyDownloads();
@@ -354,14 +354,12 @@ class DownloadProvider with ChangeNotifier {
       'formats': formats,
       'newestDownload': _downloadedSongs.isNotEmpty
           ? _downloadedSongs
-              .reduce((a, b) =>
-                  a.downloadedAt.isAfter(b.downloadedAt) ? a : b)
+              .reduce((a, b) => a.downloadedAt.isAfter(b.downloadedAt) ? a : b)
               .downloadedAt
           : null,
       'oldestDownload': _downloadedSongs.isNotEmpty
           ? _downloadedSongs
-              .reduce((a, b) =>
-                  a.downloadedAt.isBefore(b.downloadedAt) ? a : b)
+              .reduce((a, b) => a.downloadedAt.isBefore(b.downloadedAt) ? a : b)
               .downloadedAt
           : null,
     };

@@ -1,5 +1,4 @@
 import '../api_client.dart';
-import '../../../config/constants.dart';
 import '../../models/user.dart';
 
 /// Service for admin user management operations
@@ -24,7 +23,8 @@ class AdminService {
             .toList();
         return ApiResponse(success: true, data: users);
       } catch (e) {
-        return ApiResponse(success: false, error: 'Error al parsear usuarios: $e');
+        return ApiResponse(
+            success: false, error: 'Error al parsear usuarios: $e');
       }
     }
     return ApiResponse(success: false, error: response.error);
@@ -45,7 +45,8 @@ class AdminService {
           data: User.fromJson(response.data as Map<String, dynamic>),
         );
       } catch (e) {
-        return ApiResponse(success: false, error: 'Error al parsear usuario: $e');
+        return ApiResponse(
+            success: false, error: 'Error al parsear usuario: $e');
       }
     }
     return ApiResponse(success: false, error: response.error);
@@ -89,7 +90,8 @@ class AdminService {
           data: User.fromJson(response.data as Map<String, dynamic>),
         );
       } catch (e) {
-        return ApiResponse(success: false, error: 'Error al cambiar estado: $e');
+        return ApiResponse(
+            success: false, error: 'Error al cambiar estado: $e');
       }
     }
     return ApiResponse(success: false, error: response.error);
@@ -110,7 +112,8 @@ class AdminService {
           data: User.fromJson(response.data as Map<String, dynamic>),
         );
       } catch (e) {
-        return ApiResponse(success: false, error: 'Error al suspender usuario: $e');
+        return ApiResponse(
+            success: false, error: 'Error al suspender usuario: $e');
       }
     }
     return ApiResponse(success: false, error: response.error);
@@ -131,7 +134,8 @@ class AdminService {
           data: User.fromJson(response.data as Map<String, dynamic>),
         );
       } catch (e) {
-        return ApiResponse(success: false, error: 'Error al activar usuario: $e');
+        return ApiResponse(
+            success: false, error: 'Error al activar usuario: $e');
       }
     }
     return ApiResponse(success: false, error: response.error);
@@ -152,7 +156,8 @@ class AdminService {
           data: response.data as Map<String, dynamic>,
         );
       } catch (e) {
-        return ApiResponse(success: false, error: 'Error al cargar estadísticas: $e');
+        return ApiResponse(
+            success: false, error: 'Error al cargar estadísticas: $e');
       }
     }
     return ApiResponse(success: false, error: response.error);
@@ -175,7 +180,8 @@ class AdminService {
             .toList();
         return ApiResponse(success: true, data: users);
       } catch (e) {
-        return ApiResponse(success: false, error: 'Error al buscar usuarios: $e');
+        return ApiResponse(
+            success: false, error: 'Error al buscar usuarios: $e');
       }
     }
     return ApiResponse(success: false, error: response.error);
@@ -197,7 +203,8 @@ class AdminService {
             .toList();
         return ApiResponse(success: true, data: users);
       } catch (e) {
-        return ApiResponse(success: false, error: 'Error al cargar usuarios por rol: $e');
+        return ApiResponse(
+            success: false, error: 'Error al cargar usuarios por rol: $e');
       }
     }
     return ApiResponse(success: false, error: response.error);
@@ -218,7 +225,8 @@ class AdminService {
           data: User.fromJson(response.data as Map<String, dynamic>),
         );
       } catch (e) {
-        return ApiResponse(success: false, error: 'Error al verificar usuario: $e');
+        return ApiResponse(
+            success: false, error: 'Error al verificar usuario: $e');
       }
     }
     return ApiResponse(success: false, error: response.error);

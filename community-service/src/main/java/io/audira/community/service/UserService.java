@@ -16,6 +16,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -126,8 +128,9 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    public List<UserDTO> getUsersByRole(UserRole role) {
-        return userRepository.findByRole(role).stream()
+    public List<UserDTO> getUsersByRole(String role) {
+        UserRole userRole = UserRole.valueOf(role.toUpperCase());
+        return userRepository.findByRole(userRole).stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }

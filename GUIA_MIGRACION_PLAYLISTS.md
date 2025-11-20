@@ -16,7 +16,7 @@ Esta guía detalla **TODOS** los cambios necesarios para implementar las funcion
 ## GA01-113: Crear lista con nombre
 
 ### 📁 Archivos a Modificar/Crear
-
+ 
 #### 1. MODIFICAR: `lib/features/playlist/screens/create_playlist_screen.dart`
 
 **Ubicación**: `audira_frontend/lib/features/playlist/screens/create_playlist_screen.dart`
