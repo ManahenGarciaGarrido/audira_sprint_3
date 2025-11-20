@@ -8,6 +8,8 @@ import '../../../core/models/song.dart';
 import '../../../core/models/album.dart';
 import '../../../core/api/services/music_service.dart';
 import '../../../core/providers/auth_provider.dart';
+import 'edit_song_screen.dart';
+import 'edit_album_screen.dart';
 
 /// GA01-151: Editar contenido publicado (título/descripción)
 /// GA01-152: Quitar/ocultar publicación
@@ -74,176 +76,34 @@ class _StudioCatalogScreenState extends State<StudioCatalogScreen>
     }
   }
 
-  // GA01-151: Editar canción
+  // GA01-151: Navegar a pantalla de edición completa de canción
   Future<void> _editSong(Song song) async {
-    final titleController = TextEditingController(text: song.name);
-    final descController = TextEditingController(text: song.description ?? '');
-    final priceController = TextEditingController(text: song.price.toString());
-
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Editar Canción'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Título',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: descController,
-                decoration: const InputDecoration(
-                  labelText: 'Descripción',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 3,
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: priceController,
-                decoration: const InputDecoration(
-                  labelText: 'Precio',
-                  border: OutlineInputBorder(),
-                  prefixText: '\$',
-                ),
-                keyboardType: TextInputType.number,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Guardar'),
-          ),
-        ],
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditSongScreen(song: song),
       ),
     );
 
+    // Si se guardaron cambios, recargar catálogo
     if (result == true) {
-      try {
-        final response = await _musicService.updateSong(song.id, {
-          'title': titleController.text,
-          'description': descController.text,
-          'price': double.parse(priceController.text),
-        });
-
-        if (response.success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Canción actualizada exitosamente')),
-          );
-          _loadCatalog();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: ${response.error}')),
-          );
-        }
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
+      _loadCatalog();
     }
-
-    titleController.dispose();
-    descController.dispose();
-    priceController.dispose();
   }
 
-  // GA01-151: Editar álbum
+  // GA01-151: Navegar a pantalla de edición completa de álbum
   Future<void> _editAlbum(Album album) async {
-    final titleController = TextEditingController(text: album.name);
-    final descController = TextEditingController(text: album.description ?? '');
-    final priceController = TextEditingController(text: album.price.toString());
-
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Editar Álbum'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Título',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: descController,
-                decoration: const InputDecoration(
-                  labelText: 'Descripción',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 3,
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: priceController,
-                decoration: const InputDecoration(
-                  labelText: 'Precio',
-                  border: OutlineInputBorder(),
-                  prefixText: '\$',
-                ),
-                keyboardType: TextInputType.number,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Guardar'),
-          ),
-        ],
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditAlbumScreen(album: album),
       ),
     );
 
+    // Si se guardaron cambios, recargar catálogo
     if (result == true) {
-      try {
-        final response = await _musicService.updateAlbum(album.id, {
-          'title': titleController.text,
-          'description': descController.text,
-          'price': double.parse(priceController.text),
-        });
-
-        if (response.success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Álbum actualizado exitosamente')),
-          );
-          _loadCatalog();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: ${response.error}')),
-          );
-        }
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
+      _loadCatalog();
     }
-
-    titleController.dispose();
-    descController.dispose();
-    priceController.dispose();
   }
 
   // GA01-152: Toggle publicar/ocultar canción
@@ -429,7 +289,9 @@ class _StudioCatalogScreenState extends State<StudioCatalogScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
+        elevation: 0,
         title: const Text('Mi Catálogo'),
         bottom: TabBar(
           controller: _tabController,
@@ -453,14 +315,14 @@ class _StudioCatalogScreenState extends State<StudioCatalogScreen>
                 }
               });
             },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
+            itemBuilder: (context) => <PopupMenuEntry<String>>[
+              const PopupMenuItem<String>(
                 value: 'filter_header',
                 enabled: false,
                 child: Text('FILTRAR POR ESTADO',
                     style: TextStyle(fontWeight: FontWeight.bold)),
               ),
-              PopupMenuItem(
+              PopupMenuItem<String>(
                 value: 'all',
                 child: Row(
                   children: [
@@ -472,7 +334,7 @@ class _StudioCatalogScreenState extends State<StudioCatalogScreen>
                   ],
                 ),
               ),
-              PopupMenuItem(
+              PopupMenuItem<String>(
                 value: 'published',
                 child: Row(
                   children: [
@@ -484,7 +346,7 @@ class _StudioCatalogScreenState extends State<StudioCatalogScreen>
                   ],
                 ),
               ),
-              PopupMenuItem(
+              PopupMenuItem<String>(
                 value: 'hidden',
                 child: Row(
                   children: [
@@ -497,13 +359,13 @@ class _StudioCatalogScreenState extends State<StudioCatalogScreen>
                 ),
               ),
               const PopupMenuDivider(),
-              const PopupMenuItem(
+              const PopupMenuItem<String>(
                 value: 'sort_header',
                 enabled: false,
                 child: Text('ORDENAR POR',
                     style: TextStyle(fontWeight: FontWeight.bold)),
               ),
-              PopupMenuItem(
+              PopupMenuItem<String>(
                 value: 'recent',
                 child: Row(
                   children: [
@@ -514,7 +376,7 @@ class _StudioCatalogScreenState extends State<StudioCatalogScreen>
                   ],
                 ),
               ),
-              PopupMenuItem(
+              PopupMenuItem<String>(
                 value: 'name',
                 child: Row(
                   children: [
@@ -525,7 +387,7 @@ class _StudioCatalogScreenState extends State<StudioCatalogScreen>
                   ],
                 ),
               ),
-              PopupMenuItem(
+              PopupMenuItem<String>(
                 value: 'plays',
                 child: Row(
                   children: [
@@ -578,7 +440,19 @@ class _StudioCatalogScreenState extends State<StudioCatalogScreen>
       } else if (_filterStatus == 'hidden') {
         message = 'No hay canciones ocultas';
       }
-      return Center(child: Text(message));
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.music_note, size: 64, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      );
     }
 
     return ListView.builder(
@@ -587,87 +461,133 @@ class _StudioCatalogScreenState extends State<StudioCatalogScreen>
       itemBuilder: (context, index) {
         final song = songs[index];
         return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor:
-                  song.published ? AppTheme.primaryBlue : Colors.grey,
-              child: Icon(
-                song.published ? Icons.music_note : Icons.visibility_off,
-                color: Colors.white,
+          elevation: 2,
+          margin: const EdgeInsets.only(bottom: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: InkWell(
+            onTap: () => _editSong(song),
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  // Portada o icono
+                  _buildSongCover(song),
+                  const SizedBox(width: 12),
+                  // Información
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                song.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (!song.published)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange[100],
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: Colors.orange),
+                                ),
+                                child: const Text(
+                                  'OCULTO',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.orange,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '\$${song.price.toStringAsFixed(2)} • ${song.durationFormatted}',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${song.plays} reproducciones',
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Menú de opciones
+                  PopupMenuButton<String>(
+                    itemBuilder: (context) => <PopupMenuEntry<String>>[
+                      const PopupMenuItem<String>(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit, color: AppTheme.primaryBlue),
+                            SizedBox(width: 8),
+                            Text('Editar'),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem<String>(
+                        value: 'toggle',
+                        child: Row(
+                          children: [
+                            Icon(
+                              song.published
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              color: AppTheme.primaryBlue,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(song.published ? 'Ocultar' : 'Publicar'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuDivider(),
+                      const PopupMenuItem<String>(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete, color: Colors.red),
+                            SizedBox(width: 8),
+                            Text('Eliminar', style: TextStyle(color: Colors.red)),
+                          ],
+                        ),
+                      ),
+                    ],
+                    onSelected: (value) {
+                      if (value == 'edit') {
+                        _editSong(song);
+                      } else if (value == 'toggle') {
+                        _toggleSongPublished(song);
+                      } else if (value == 'delete') {
+                        _deleteSong(song.id);
+                      }
+                    },
+                  ),
+                ],
               ),
             ),
-            title: Row(
-              children: [
-                Expanded(child: Text(song.name)),
-                if (!song.published)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      'OCULTO',
-                      style: TextStyle(fontSize: 10),
-                    ),
-                  ),
-              ],
-            ),
-            subtitle: Text(
-                '\$${song.price.toStringAsFixed(2)} • ${song.durationFormatted} • ${song.plays} plays'),
-            trailing: PopupMenuButton<String>(
-              itemBuilder: (context) => <PopupMenuEntry<String>>[
-                const PopupMenuItem<String>(
-                  value: 'edit',
-                  child: Row(
-                    children: [
-                      Icon(Icons.edit, color: AppTheme.primaryBlue),
-                      SizedBox(width: 8),
-                      Text('Editar'),
-                    ],
-                  ),
-                ),
-                PopupMenuItem<String>(
-                  value: 'toggle',
-                  child: Row(
-                    children: [
-                      Icon(
-                        song.published
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                        color: AppTheme.primaryBlue,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(song.published ? 'Ocultar' : 'Publicar'),
-                    ],
-                  ),
-                ),
-                const PopupMenuDivider(),
-                const PopupMenuItem<String>(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete, color: Colors.red),
-                      SizedBox(width: 8),
-                      Text('Eliminar', style: TextStyle(color: Colors.red)),
-                    ],
-                  ),
-                ),
-              ],
-              onSelected: (value) {
-                if (value == 'edit') {
-                  _editSong(song);
-                } else if (value == 'toggle') {
-                  _toggleSongPublished(song);
-                } else if (value == 'delete') {
-                  _deleteSong(song.id);
-                }
-              },
-            ),
           ),
-        ).animate().fadeIn(delay: (index * 50).ms);
+        ).animate().fadeIn(delay: (index * 50).ms).slideX(begin: 0.2, end: 0);
       },
     );
   }
@@ -682,7 +602,19 @@ class _StudioCatalogScreenState extends State<StudioCatalogScreen>
       } else if (_filterStatus == 'hidden') {
         message = 'No hay álbumes ocultos';
       }
-      return Center(child: Text(message));
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.album, size: 64, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      );
     }
 
     return ListView.builder(
@@ -691,87 +623,262 @@ class _StudioCatalogScreenState extends State<StudioCatalogScreen>
       itemBuilder: (context, index) {
         final album = albums[index];
         return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor:
-                  album.published ? AppTheme.primaryBlue : Colors.grey,
-              child: Icon(
-                album.published ? Icons.album : Icons.visibility_off,
-                color: Colors.white,
+          elevation: 2,
+          margin: const EdgeInsets.only(bottom: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: InkWell(
+            onTap: () => _editAlbum(album),
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  // Portada o icono
+                  _buildAlbumCover(album),
+                  const SizedBox(width: 12),
+                  // Información
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                album.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (!album.published)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange[100],
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: Colors.orange),
+                                ),
+                                child: const Text(
+                                  'OCULTO',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.orange,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '\$${album.price.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 14,
+                          ),
+                        ),
+                        if (album.songCount != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            '${album.songCount} canciones',
+                            style: TextStyle(
+                              color: Colors.grey[500],
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  // Menú de opciones
+                  PopupMenuButton<String>(
+                    itemBuilder: (context) => <PopupMenuEntry<String>>[
+                      const PopupMenuItem<String>(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit, color: AppTheme.primaryBlue),
+                            SizedBox(width: 8),
+                            Text('Editar'),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem<String>(
+                        value: 'toggle',
+                        child: Row(
+                          children: [
+                            Icon(
+                              album.published
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              color: AppTheme.primaryBlue,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(album.published ? 'Ocultar' : 'Publicar'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuDivider(),
+                      const PopupMenuItem<String>(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete, color: Colors.red),
+                            SizedBox(width: 8),
+                            Text('Eliminar', style: TextStyle(color: Colors.red)),
+                          ],
+                        ),
+                      ),
+                    ],
+                    onSelected: (value) {
+                      if (value == 'edit') {
+                        _editAlbum(album);
+                      } else if (value == 'toggle') {
+                        _toggleAlbumPublished(album);
+                      } else if (value == 'delete') {
+                        _deleteAlbum(album.id);
+                      }
+                    },
+                  ),
+                ],
               ),
             ),
-            title: Row(
-              children: [
-                Expanded(child: Text(album.name)),
-                if (!album.published)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      'OCULTO',
-                      style: TextStyle(fontSize: 10),
-                    ),
-                  ),
-              ],
-            ),
-            subtitle: Text('\$${album.price.toStringAsFixed(2)}'),
-            trailing: PopupMenuButton<String>(
-              itemBuilder: (context) => <PopupMenuEntry<String>>[
-                const PopupMenuItem<String>(
-                  value: 'edit',
-                  child: Row(
-                    children: [
-                      Icon(Icons.edit, color: AppTheme.primaryBlue),
-                      SizedBox(width: 8),
-                      Text('Editar'),
-                    ],
-                  ),
-                ),
-                PopupMenuItem<String>(
-                  value: 'toggle',
-                  child: Row(
-                    children: [
-                      Icon(
-                        album.published
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                        color: AppTheme.primaryBlue,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(album.published ? 'Ocultar' : 'Publicar'),
-                    ],
-                  ),
-                ),
-                const PopupMenuDivider(),
-                const PopupMenuItem<String>(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete, color: Colors.red),
-                      SizedBox(width: 8),
-                      Text('Eliminar', style: TextStyle(color: Colors.red)),
-                    ],
-                  ),
-                ),
-              ],
-              onSelected: (value) {
-                if (value == 'edit') {
-                  _editAlbum(album);
-                } else if (value == 'toggle') {
-                  _toggleAlbumPublished(album);
-                } else if (value == 'delete') {
-                  _deleteAlbum(album.id);
-                }
-              },
-            ),
           ),
-        ).animate().fadeIn(delay: (index * 50).ms);
+        ).animate().fadeIn(delay: (index * 50).ms).slideX(begin: 0.2, end: 0);
       },
+    );
+  }
+
+  // Widget para mostrar portada de canción o icono de oculto
+  Widget _buildSongCover(Song song) {
+    if (!song.published) {
+      // Si está oculto, mostrar icono visibility_off
+      return Container(
+        width: 60,
+        height: 60,
+        decoration: BoxDecoration(
+          color: Colors.grey[300],
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Icon(
+          Icons.visibility_off,
+          size: 30,
+          color: Colors.grey,
+        ),
+      );
+    }
+
+    // Si está publicado, mostrar portada
+    if (song.coverImageUrl != null && song.coverImageUrl!.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.network(
+          song.coverImageUrl!,
+          width: 60,
+          height: 60,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: AppTheme.primaryBlue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.music_note,
+                size: 30,
+                color: AppTheme.primaryBlue,
+              ),
+            );
+          },
+        ),
+      );
+    }
+
+    // Fallback: icono de música
+    return Container(
+      width: 60,
+      height: 60,
+      decoration: BoxDecoration(
+        color: AppTheme.primaryBlue.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: const Icon(
+        Icons.music_note,
+        size: 30,
+        color: AppTheme.primaryBlue,
+      ),
+    );
+  }
+
+  // Widget para mostrar portada de álbum o icono de oculto
+  Widget _buildAlbumCover(Album album) {
+    if (!album.published) {
+      // Si está oculto, mostrar icono visibility_off
+      return Container(
+        width: 60,
+        height: 60,
+        decoration: BoxDecoration(
+          color: Colors.grey[300],
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Icon(
+          Icons.visibility_off,
+          size: 30,
+          color: Colors.grey,
+        ),
+      );
+    }
+
+    // Si está publicado, mostrar portada
+    if (album.coverImageUrl != null && album.coverImageUrl!.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.network(
+          album.coverImageUrl!,
+          width: 60,
+          height: 60,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: AppTheme.primaryBlue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.album,
+                size: 30,
+                color: AppTheme.primaryBlue,
+              ),
+            );
+          },
+        ),
+      );
+    }
+
+    // Fallback: icono de álbum
+    return Container(
+      width: 60,
+      height: 60,
+      decoration: BoxDecoration(
+        color: AppTheme.primaryBlue.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: const Icon(
+        Icons.album,
+        size: 30,
+        color: AppTheme.primaryBlue,
+      ),
     );
   }
 }
