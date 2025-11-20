@@ -89,12 +89,21 @@ class StudioDashboardScreen extends StatelessWidget {
           const SizedBox(height: 12),
           _buildStudioCard(
             context,
+            icon: Icons.people,
+            title: 'Collaborations',
+            subtitle: 'Manage collaborators and revenue sharing',
+            color: Colors.pink,
+            route: '/studio/collaborations',
+          ).animate(delay: 500.ms).fadeIn().slideX(begin: -0.2),
+          const SizedBox(height: 12),
+          _buildStudioCard(
+            context,
             icon: Icons.file_upload,
             title: '🧪 Test File Upload',
             subtitle: 'Test audio/image upload and compression',
             color: Colors.teal,
             route: '/studio/file-demo',
-          ).animate(delay: 500.ms).fadeIn().slideX(begin: -0.2),
+          ).animate(delay: 600.ms).fadeIn().slideX(begin: -0.2),
         ],
       ),
     );
