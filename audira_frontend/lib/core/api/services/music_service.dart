@@ -144,6 +144,15 @@ class MusicService {
     return ApiResponse(success: false, error: response.error);
   }
 
+  // GA01-151: Update Song (Artist only)
+  Future<ApiResponse<Song>> updateSong(int id, Map<String, dynamic> songData) async {
+    final response = await _apiClient.put('${AppConstants.songsUrl}/$id', body: songData);
+    if (response.success && response.data != null) {
+      return ApiResponse(success: true, data: Song.fromJson(response.data));
+    }
+    return ApiResponse(success: false, error: response.error);
+  }
+
   // Update Album (Artist only)
   Future<ApiResponse<Album>> updateAlbum(int id, Map<String, dynamic> albumData) async {
     final response = await _apiClient.put('${AppConstants.albumsUrl}/$id', body: albumData);
@@ -160,6 +169,17 @@ class MusicService {
     );
     if (response.success && response.data != null) {
       return ApiResponse(success: true, data: Album.fromJson(response.data));
+    }
+    return ApiResponse(success: false, error: response.error);
+  }
+
+  // GA01-152: Publish/Unpublish Song (Artist only)
+  Future<ApiResponse<Song>> publishSong(int id, bool published) async {
+    final response = await _apiClient.patch(
+      '${AppConstants.songsUrl}/$id/publish?published=$published',
+    );
+    if (response.success && response.data != null) {
+      return ApiResponse(success: true, data: Song.fromJson(response.data));
     }
     return ApiResponse(success: false, error: response.error);
   }

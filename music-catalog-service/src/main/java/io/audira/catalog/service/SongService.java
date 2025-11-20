@@ -121,4 +121,15 @@ public class SongService {
         song.setPlays(song.getPlays() + 1);
         return songRepository.save(song);
     }
+
+    /**
+     * GA01-152: Publicar o ocultar una canción
+     */
+    @Transactional
+    public Song publishSong(Long id, boolean published) {
+        Song song = songRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Song not found with id: " + id));
+        song.setPublished(published);
+        return songRepository.save(song);
+    }
 }
