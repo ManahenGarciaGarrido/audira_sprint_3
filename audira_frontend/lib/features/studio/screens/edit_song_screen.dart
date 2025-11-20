@@ -3,7 +3,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../config/theme.dart';
 import '../../../core/providers/auth_provider.dart';
@@ -34,7 +33,6 @@ class _EditSongScreenState extends State<EditSongScreen> {
 
   bool _isSaving = false;
   bool _isLoadingGenres = true;
-  String? _imageFileName;
   String? _imageFilePath;
   List<Genre> _availableGenres = [];
   late List<int> _selectedGenreIds;
@@ -92,7 +90,6 @@ class _EditSongScreenState extends State<EditSongScreen> {
 
       if (image != null) {
         setState(() {
-          _imageFileName = image.name;
           _imageFilePath = image.path;
         });
         ScaffoldMessenger.of(context).showSnackBar(
@@ -127,9 +124,9 @@ class _EditSongScreenState extends State<EditSongScreen> {
       // Subir nueva imagen si se seleccionó una
       String? coverUrl = widget.song.coverImageUrl;
       if (_imageFilePath != null) {
-        final uploadResponse = await _fileService.uploadImage(_imageFilePath!);
+        final uploadResponse = await _fileService.uploadImageFile(_imageFilePath!);
         if (uploadResponse.success && uploadResponse.data != null) {
-          coverUrl = uploadResponse.data;
+          coverUrl = uploadResponse.data!.fileUrl;
         }
       }
 
@@ -435,7 +432,7 @@ class _EditSongScreenState extends State<EditSongScreen> {
               }
             });
           },
-          selectedColor: AppTheme.primaryBlue.withOpacity(0.3),
+          selectedColor: AppTheme.primaryBlue.withValues(alpha:0.3),
           checkmarkColor: AppTheme.primaryBlue,
         );
       }).toList(),

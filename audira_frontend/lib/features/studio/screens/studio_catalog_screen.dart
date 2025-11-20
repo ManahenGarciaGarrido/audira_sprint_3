@@ -789,7 +789,7 @@ class _StudioCatalogScreenState extends State<StudioCatalogScreen>
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                color: AppTheme.primaryBlue.withOpacity(0.1),
+                color: AppTheme.primaryBlue.withValues(alpha:0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
@@ -808,7 +808,7 @@ class _StudioCatalogScreenState extends State<StudioCatalogScreen>
       width: 60,
       height: 60,
       decoration: BoxDecoration(
-        color: AppTheme.primaryBlue.withOpacity(0.1),
+        color: AppTheme.primaryBlue.withValues(alpha:0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: const Icon(
@@ -852,7 +852,7 @@ class _StudioCatalogScreenState extends State<StudioCatalogScreen>
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                color: AppTheme.primaryBlue.withOpacity(0.1),
+                color: AppTheme.primaryBlue.withValues(alpha:0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
@@ -871,7 +871,7 @@ class _StudioCatalogScreenState extends State<StudioCatalogScreen>
       width: 60,
       height: 60,
       decoration: BoxDecoration(
-        color: AppTheme.primaryBlue.withOpacity(0.1),
+        color: AppTheme.primaryBlue.withValues(alpha:0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: const Icon(

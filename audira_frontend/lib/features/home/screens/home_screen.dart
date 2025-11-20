@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../config/theme.dart';
 import '../../../core/api/services/music_service.dart';
-import '../../../core/api/services/discovery_service.dart';
 import '../../../core/models/song.dart';
 import '../../../core/models/album.dart';
 import '../../../core/models/genre.dart';
@@ -19,7 +18,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final MusicService _musicService = MusicService();
-  final DiscoveryService _discoveryService = DiscoveryService();
 
   List<Song> _featuredSongs = [];
   List<Album> _featuredAlbums = [];

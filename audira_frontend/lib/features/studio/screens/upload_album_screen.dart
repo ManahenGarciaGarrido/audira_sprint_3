@@ -501,7 +501,7 @@ class _UploadAlbumScreenState extends State<UploadAlbumScreen> {
                     _publishNow = value;
                   });
                 },
-                activeColor: AppTheme.primaryBlue,
+                activeThumbColor: AppTheme.primaryBlue,
                 secondary: Icon(
                   _publishNow ? Icons.visibility : Icons.visibility_off,
                   color: _publishNow ? AppTheme.primaryBlue : Colors.grey,
