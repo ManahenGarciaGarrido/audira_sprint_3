@@ -144,11 +144,12 @@ public class UserService {
 
     @Transactional
     public UserDTO updateProfile(Long userId, UpdateProfileRequest request) {
+        // Clear persistence context to avoid stale data
+        entityManager.clear();
+
+        // Reload user with fresh data from database
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // Refresh entity to get latest version from database (prevents optimistic locking errors)
-        entityManager.refresh(user);
 
         if (request.getFirstName() != null) {
             user.setFirstName(request.getFirstName());
@@ -237,11 +238,12 @@ public class UserService {
 
     @Transactional
     public UserDTO updateProfile(Long userId, Map<String, Object> updates) {
+        // Clear persistence context to avoid stale data
+        entityManager.clear();
+
+        // Reload user with fresh data from database
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // Refresh entity to get latest version from database (prevents optimistic locking errors)
-        entityManager.refresh(user);
 
         if (updates.containsKey("firstName")) {
             user.setFirstName((String) updates.get("firstName"));
