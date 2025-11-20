@@ -1,11 +1,12 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../../../config/theme.dart';
 import '../../../core/models/song.dart';
 import '../../../core/models/album.dart';
+import '../../../core/models/user.dart';
 import '../../../core/api/services/collaboration_service.dart';
+import '../../../core/api/services/user_service.dart';
 
 /// Dialog for inviting collaborators to songs or albums
 /// GA01-154: Añadir colaboradores
@@ -25,13 +26,17 @@ class AddCollaboratorDialog extends StatefulWidget {
 
 class _AddCollaboratorDialogState extends State<AddCollaboratorDialog> {
   final _formKey = GlobalKey<FormState>();
-  final _artistIdController = TextEditingController();
+  final _searchController = TextEditingController();
   final _roleController = TextEditingController();
   final CollaborationService _collaborationService = CollaborationService();
+  final UserService _userService = UserService();
 
   String _entityType = 'song'; // 'song' or 'album'
   int? _selectedEntityId;
+  User? _selectedArtist;
   bool _isLoading = false;
+  bool _isSearching = false;
+  List<User> _searchResults = [];
 
   final List<String> _suggestedRoles = [
     'Artista destacado',
@@ -45,9 +50,36 @@ class _AddCollaboratorDialogState extends State<AddCollaboratorDialog> {
 
   @override
   void dispose() {
-    _artistIdController.dispose();
+    _searchController.dispose();
     _roleController.dispose();
     super.dispose();
+  }
+
+  Future<void> _searchArtists(String query) async {
+    if (query.trim().length < 2) {
+      setState(() {
+        _searchResults = [];
+        _isSearching = false;
+      });
+      return;
+    }
+
+    setState(() => _isSearching = true);
+
+    try {
+      final response = await _userService.searchArtists(query);
+      if (response.success && response.data != null) {
+        setState(() {
+          _searchResults = response.data!;
+        });
+      } else {
+        setState(() => _searchResults = []);
+      }
+    } catch (e) {
+      setState(() => _searchResults = []);
+    } finally {
+      setState(() => _isSearching = false);
+    }
   }
 
   Future<void> _inviteCollaborator() async {
@@ -65,10 +97,20 @@ class _AddCollaboratorDialogState extends State<AddCollaboratorDialog> {
       return;
     }
 
+    if (_selectedArtist == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Por favor selecciona un artista'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
-      final artistId = int.parse(_artistIdController.text);
+      final artistId = _selectedArtist!.id;
       final role = _roleController.text.trim();
 
       final response = _entityType == 'song'
@@ -176,9 +218,9 @@ class _AddCollaboratorDialogState extends State<AddCollaboratorDialog> {
 
               const SizedBox(height: 16),
 
-              // Artist ID
+              // Artist Search with Autocomplete
               const Text(
-                'ID del artista',
+                'Buscar artista',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -186,27 +228,8 @@ class _AddCollaboratorDialogState extends State<AddCollaboratorDialog> {
                 ),
               ),
               const SizedBox(height: 8),
-              TextFormField(
-                controller: _artistIdController,
-                decoration: const InputDecoration(
-                  hintText: 'Ingresa el ID del artista',
-                  prefixIcon: Icon(Icons.person),
-                  border: OutlineInputBorder(),
-                  filled: true,
-                  fillColor: AppTheme.backgroundBlack,
-                ),
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Por favor ingresa el ID del artista';
-                  }
-                  if (int.tryParse(value) == null) {
-                    return 'ID inválido';
-                  }
-                  return null;
-                },
-              ),
+              _buildArtistAutocomplete(),
+
               const SizedBox(height: 16),
 
               // Role
@@ -283,6 +306,176 @@ class _AddCollaboratorDialogState extends State<AddCollaboratorDialog> {
                 )
               : const Text('Invitar'),
         ),
+      ],
+    );
+  }
+
+  Widget _buildArtistAutocomplete() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Search field
+        TextFormField(
+          controller: _searchController,
+          decoration: InputDecoration(
+            hintText: 'Escribe el nombre del artista',
+            prefixIcon: const Icon(Icons.search),
+            suffixIcon: _isSearching
+                ? const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                : _selectedArtist != null
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          setState(() {
+                            _searchController.clear();
+                            _selectedArtist = null;
+                            _searchResults = [];
+                          });
+                        },
+                      )
+                    : null,
+            border: const OutlineInputBorder(),
+            filled: true,
+            fillColor: AppTheme.backgroundBlack,
+          ),
+          onChanged: (value) {
+            _searchArtists(value);
+            // Clear selection if user is typing
+            if (_selectedArtist != null) {
+              setState(() => _selectedArtist = null);
+            }
+          },
+          validator: (value) {
+            if (_selectedArtist == null) {
+              return 'Por favor selecciona un artista de la lista';
+            }
+            return null;
+          },
+        ),
+
+        // Selected artist display
+        if (_selectedArtist != null) ...[
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryBlue.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: AppTheme.primaryBlue.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: AppTheme.primaryBlue,
+                  child: Text(
+                    _selectedArtist!.name.substring(0, 1).toUpperCase(),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _selectedArtist!.name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      Text(
+                        '@${_selectedArtist!.username} • ID: ${_selectedArtist!.id}',
+                        style: const TextStyle(
+                          color: AppTheme.textGrey,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.check_circle, color: Colors.green),
+              ],
+            ),
+          ),
+        ],
+
+        // Search results dropdown
+        if (_searchResults.isNotEmpty && _selectedArtist == null) ...[
+          const SizedBox(height: 8),
+          Container(
+            constraints: const BoxConstraints(maxHeight: 200),
+            decoration: BoxDecoration(
+              color: AppTheme.backgroundBlack,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: AppTheme.textGrey.withValues(alpha: 0.3),
+              ),
+            ),
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: _searchResults.length,
+              itemBuilder: (context, index) {
+                final artist = _searchResults[index];
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: AppTheme.primaryBlue,
+                    child: Text(
+                      artist.name.substring(0, 1).toUpperCase(),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  title: Text(artist.name),
+                  subtitle: Text(
+                    '@${artist.username}',
+                    style: const TextStyle(color: AppTheme.textGrey),
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () {
+                    setState(() {
+                      _selectedArtist = artist;
+                      _searchController.text = artist.name;
+                      _searchResults = [];
+                    });
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+
+        // Helper text
+        if (_searchResults.isEmpty &&
+            _searchController.text.isNotEmpty &&
+            !_isSearching &&
+            _selectedArtist == null) ...[
+          const SizedBox(height: 8),
+          Text(
+            _searchController.text.length < 2
+                ? 'Escribe al menos 2 caracteres para buscar'
+                : 'No se encontraron artistas',
+            style: const TextStyle(
+              color: AppTheme.textGrey,
+              fontSize: 12,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ],
       ],
     );
   }

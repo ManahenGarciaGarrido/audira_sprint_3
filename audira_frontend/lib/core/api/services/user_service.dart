@@ -66,6 +66,33 @@ class UserService {
     return ApiResponse(success: false, error: response.error);
   }
 
+  /// Search artists by name
+  /// GA01-154: Search artists for collaboration invitations
+  Future<ApiResponse<List<User>>> searchArtists(String query) async {
+    if (query.trim().isEmpty) {
+      return ApiResponse(success: true, data: []);
+    }
+
+    final response = await _apiClient.get(
+      '/api/users/search/artists',
+      queryParameters: {'query': query},
+      requiresAuth: false,
+    );
+
+    if (response.success && response.data != null) {
+      try {
+        final List<dynamic> usersJson = response.data as List<dynamic>;
+        final artists = usersJson
+            .map((json) => User.fromJson(json as Map<String, dynamic>))
+            .toList();
+        return ApiResponse(success: true, data: artists);
+      } catch (e) {
+        return ApiResponse(success: false, error: 'Error al buscar artistas: $e');
+      }
+    }
+    return ApiResponse(success: false, error: response.error);
+  }
+
   /// Get user's followers
   Future<ApiResponse<List<User>>> getUserFollowers(int userId) async {
     final response = await _apiClient.get(
