@@ -563,6 +563,313 @@ WHERE published IS NULL OR published = FALSE;
 
 ---
 
+## Actualizaciones Adicionales Implementadas
+
+### 1. Pantallas de Edición Completas
+
+**Archivos creados:**
+- `audira_frontend/lib/features/studio/screens/edit_song_screen.dart` [NUEVO]
+- `audira_frontend/lib/features/studio/screens/edit_album_screen.dart` [NUEVO]
+
+**Cambios realizados:**
+- Se reemplazaron los diálogos de edición por pantallas completas
+- Las pantallas muestran todos los campos de la canción/álbum prellenados
+- Permiten editar: título, descripción, precio, géneros, categoría, letra (canciones)
+- Soporte para cambiar imagen de portada
+- Navegación desde StudioCatalogScreen con botón "Editar"
+
+### 2. Opción de Publicación Inmediata al Subir Contenido
+
+**Archivos modificados:**
+- `audira_frontend/lib/features/studio/screens/upload_song_screen.dart`
+- `audira_frontend/lib/features/studio/screens/upload_album_screen.dart`
+
+**Cambios realizados:**
+```dart
+// Variable de estado agregada:
+bool _publishNow = true; // Publicar inmediatamente por defecto
+
+// UI agregada (SwitchListTile):
+Card(
+  child: SwitchListTile(
+    title: const Text('¿Publicar inmediatamente?'),
+    subtitle: Text(
+      _publishNow
+          ? 'La canción/álbum será visible para todos los usuarios'
+          : 'La canción/álbum quedará oculto hasta que lo publiques manualmente',
+    ),
+    value: _publishNow,
+    onChanged: (value) {
+      setState(() {
+        _publishNow = value;
+      });
+    },
+  ),
+)
+
+// En songData/albumData:
+'published': _publishNow,
+```
+
+**Flujo de usuario:**
+1. Al crear una nueva canción o álbum, el usuario ve un switch
+2. Por defecto está activado (publicar inmediatamente)
+3. Si lo desactiva, el contenido se crea como oculto
+4. Puede publicarlo más tarde desde el catálogo
+
+### 3. Filtrado de Contenido Publicado en Backend
+
+**Archivos modificados:**
+
+#### Repositorios
+- `music-catalog-service/src/main/java/io/audira/catalog/repository/SongRepository.java`
+  - Agregados métodos: `findTop20ByPublishedTrueOrderByCreatedAtDesc()`, `findRecentPublishedSongs()`, `searchPublishedByTitleOrArtist()`, `findPublishedByGenreId()`, `findTopPublishedByPlays()`
+
+- `music-catalog-service/src/main/java/io/audira/catalog/repository/AlbumRepository.java`
+  - Agregados métodos: `findTop20ByPublishedTrueOrderByCreatedAtDesc()`, `findRecentPublishedAlbums()`
+
+#### Servicios
+- `music-catalog-service/src/main/java/io/audira/catalog/service/SongService.java`
+  - Agregados métodos públicos que retornan solo contenido publicado
+
+- `music-catalog-service/src/main/java/io/audira/catalog/service/AlbumService.java`
+  - Agregado método: `getRecentPublishedAlbums()`
+
+#### Controladores
+- `music-catalog-service/src/main/java/io/audira/catalog/controller/SongController.java`
+  - Nuevos endpoints públicos:
+    - `GET /api/songs/public/recent` - Canciones publicadas recientes
+    - `GET /api/songs/public/top` - Canciones publicadas más populares
+    - `GET /api/songs/public/search?query=...` - Buscar canciones publicadas
+    - `GET /api/songs/public/genre/{genreId}` - Canciones publicadas por género
+
+- `music-catalog-service/src/main/java/io/audira/catalog/controller/AlbumController.java`
+  - Nuevo endpoint público:
+    - `GET /api/albums/public/latest-releases` - Álbumes publicados recientes
+
+**Justificación:**
+- Los endpoints originales (`/api/songs`, `/api/albums`) se mantienen para uso del estudio
+- Los nuevos endpoints públicos (`/api/songs/public/*`, `/api/albums/public/*`) solo retornan contenido publicado
+- Esto permite separar vistas públicas de vistas de administración
+
+### 4. Actualización de Frontend para Usar Endpoints Públicos
+
+**Archivo modificado:**
+- `audira_frontend/lib/core/api/services/music_service.dart`
+
+**Métodos agregados:**
+```dart
+// Endpoints públicos - Solo retornan contenido publicado
+Future<ApiResponse<List<Song>>> getRecentPublishedSongs()
+Future<ApiResponse<List<Song>>> getTopPublishedSongs()
+Future<ApiResponse<List<Song>>> searchPublishedSongs(String query)
+Future<ApiResponse<List<Song>>> getPublishedSongsByGenre(int genreId)
+Future<ApiResponse<List<Album>>> getRecentPublishedAlbums()
+```
+
+### 5. Actualización de Vistas Públicas
+
+**Archivos modificados:**
+
+#### HomeScreen
+- `audira_frontend/lib/features/home/screens/home_screen.dart`
+- Cambio: Usa `getTopPublishedSongs()` y `getRecentPublishedAlbums()` en lugar de DiscoveryService
+- Resultado: La pantalla de inicio solo muestra contenido publicado
+
+#### StoreScreen
+- `audira_frontend/lib/features/store/screens/store_screen.dart`
+- Cambio: Usa `getRecentPublishedSongs()` y `getRecentPublishedAlbums()`
+- Resultado: La tienda solo muestra contenido publicado
+
+#### SearchScreen
+- `audira_frontend/lib/features/search/screens/search_screen.dart`
+- Cambio: Usa `searchPublishedSongs()` para búsquedas y `getTopPublishedSongs()` para contenido destacado
+- Resultado: Las búsquedas solo retornan contenido publicado
+
+**Política de visibilidad implementada:**
+- ✅ **Vistas públicas** (inicio, tienda, búsqueda): Solo contenido publicado
+- ✅ **Vista de estudio** (Mi Catálogo): Todo el contenido del artista (publicado y oculto)
+- ℹ️ **Vista de biblioteca**: El contenido comprado permanece accesible independientemente del estado de publicación (ya implementado en sprint anterior)
+
+### 6. Mejoras Visuales en StudioCatalogScreen
+
+**Archivo modificado:**
+- `audira_frontend/lib/features/studio/screens/studio_catalog_screen.dart`
+
+**Cambios visuales implementados:**
+
+1. **Portadas de contenido publicado:**
+   - Las canciones y álbumes publicados muestran su imagen de portada (60x60px)
+   - Diseño con esquinas redondeadas y placeholder para errores
+
+2. **Indicador de contenido oculto:**
+   - Las canciones y álbumes ocultos muestran icono `visibility_off` en lugar de portada
+   - Fondo gris para distinguir del contenido publicado
+
+3. **Badge "OCULTO":**
+   - Badge naranja prominente para contenido no publicado
+   - Ayuda a identificar rápidamente el estado
+
+4. **Tarjetas mejoradas:**
+   - Mayor elevación y bordes redondeados
+   - Animaciones de entrada (fadeIn + slideX)
+   - Tarjetas clicables completas para editar
+   - Mejor uso de espaciado y tipografía
+
+5. **Estados vacíos contextuales:**
+   - Mensajes diferentes según el filtro activo
+   - Iconos informativos para mejorar UX
+
+**Código visual:**
+```dart
+// Widget para mostrar portada o icono de oculto
+Widget _buildSongCover(Song song) {
+  if (!song.published) {
+    return Container(
+      width: 60,
+      height: 60,
+      decoration: BoxDecoration(
+        color: Colors.grey[300],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: const Icon(Icons.visibility_off, size: 30, color: Colors.grey),
+    );
+  }
+  // Mostrar imagen de portada si está disponible...
+}
+```
+
+---
+
+## Endpoints API Actualizados
+
+### Canciones - Públicos (Solo Publicados)
+
+| Método | Endpoint | Descripción | Estado |
+|--------|----------|-------------|--------|
+| GET | `/api/songs/public/recent` | Canciones publicadas recientes | **NUEVO** |
+| GET | `/api/songs/public/top` | Canciones publicadas más populares | **NUEVO** |
+| GET | `/api/songs/public/search?query=...` | Buscar canciones publicadas | **NUEVO** |
+| GET | `/api/songs/public/genre/{genreId}` | Canciones publicadas por género | **NUEVO** |
+
+### Álbumes - Públicos (Solo Publicados)
+
+| Método | Endpoint | Descripción | Estado |
+|--------|----------|-------------|--------|
+| GET | `/api/albums/public/latest-releases` | Álbumes publicados recientes | **NUEVO** |
+
+---
+
+## Casos de Prueba Adicionales
+
+### Publicación Inmediata al Subir
+
+**Test 12: Subir canción con publicación inmediata**
+- **Pasos:**
+  1. Navegar a "Subir Canción"
+  2. Completar formulario
+  3. Dejar switch "Publicar inmediatamente" activado
+  4. Subir
+- **Resultado esperado:** Canción creada con `published=true`, visible en vistas públicas
+
+**Test 13: Subir canción sin publicar**
+- **Pasos:**
+  1. Navegar a "Subir Canción"
+  2. Completar formulario
+  3. Desactivar switch "Publicar inmediatamente"
+  4. Subir
+- **Resultado esperado:** Canción creada con `published=false`, no visible en vistas públicas, visible en Mi Catálogo
+
+### Visibilidad en Vistas Públicas
+
+**Test 14: Contenido oculto no aparece en inicio**
+- **Precondición:** Canción con `published=false`
+- **Pasos:**
+  1. Navegar a pantalla de Inicio
+- **Resultado esperado:** Canción oculta no aparece en listas
+
+**Test 15: Contenido oculto no aparece en tienda**
+- **Precondición:** Álbum con `published=false`
+- **Pasos:**
+  1. Navegar a Tienda
+- **Resultado esperado:** Álbum oculto no aparece en listas
+
+**Test 16: Contenido oculto no aparece en búsqueda**
+- **Precondición:** Canción "Test Song" con `published=false`
+- **Pasos:**
+  1. Navegar a Búsqueda
+  2. Buscar "Test Song"
+- **Resultado esperado:** No se encuentra la canción
+
+**Test 17: Contenido publicado aparece en todas las vistas**
+- **Precondición:** Canción con `published=true`
+- **Pasos:**
+  1. Verificar en Inicio, Tienda y Búsqueda
+- **Resultado esperado:** Canción visible en todas las vistas públicas
+
+### Visuales en StudioCatalogScreen
+
+**Test 18: Portada visible para contenido publicado**
+- **Precondición:** Canción publicada con coverImageUrl
+- **Pasos:**
+  1. Navegar a Mi Catálogo
+- **Resultado esperado:** Portada de 60x60px visible en tarjeta
+
+**Test 19: Icono visibility_off para contenido oculto**
+- **Precondición:** Canción oculta
+- **Pasos:**
+  1. Navegar a Mi Catálogo
+- **Resultado esperado:** Icono gris visibility_off en lugar de portada
+
+**Test 20: Badge "OCULTO" presente**
+- **Precondición:** Álbum oculto
+- **Pasos:**
+  1. Navegar a Mi Catálogo → Álbumes
+- **Resultado esperado:** Badge naranja "OCULTO" visible en tarjeta
+
+---
+
+## Estructura de Archivos Actualizada
+
+```
+audira_sprint_3/
+├── music-catalog-service/
+│   └── src/main/java/io/audira/catalog/
+│       ├── model/
+│       │   └── Song.java [MODIFICADO]
+│       ├── repository/
+│       │   ├── SongRepository.java [MODIFICADO - Métodos públicos]
+│       │   └── AlbumRepository.java [MODIFICADO - Métodos públicos]
+│       ├── service/
+│       │   ├── SongService.java [MODIFICADO - Métodos públicos]
+│       │   └── AlbumService.java [MODIFICADO - Métodos públicos]
+│       └── controller/
+│           ├── SongController.java [MODIFICADO - Endpoints públicos]
+│           └── AlbumController.java [MODIFICADO - Endpoints públicos]
+│
+└── audira_frontend/lib/
+    ├── core/
+    │   ├── models/
+    │   │   └── song.dart [MODIFICADO]
+    │   └── api/services/
+    │       └── music_service.dart [MODIFICADO - Métodos públicos]
+    └── features/
+        ├── home/screens/
+        │   └── home_screen.dart [MODIFICADO - Usa endpoints públicos]
+        ├── store/screens/
+        │   └── store_screen.dart [MODIFICADO - Usa endpoints públicos]
+        ├── search/screens/
+        │   └── search_screen.dart [MODIFICADO - Usa endpoints públicos]
+        └── studio/screens/
+            ├── edit_song_screen.dart [NUEVO]
+            ├── edit_album_screen.dart [NUEVO]
+            ├── upload_song_screen.dart [MODIFICADO - Switch publicar]
+            ├── upload_album_screen.dart [MODIFICADO - Switch publicar]
+            └── studio_catalog_screen.dart [MODIFICADO - Mejoras visuales]
+```
+
+---
+
 ## Conclusión
 
 La implementación de las tareas GA01-151, GA01-152 y GA01-153 proporciona a los artistas un control completo sobre sus publicaciones, permitiendo:

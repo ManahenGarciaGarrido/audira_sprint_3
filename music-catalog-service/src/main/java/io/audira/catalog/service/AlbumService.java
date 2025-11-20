@@ -141,4 +141,9 @@ public class AlbumService {
         int songCount = songRepository.findByAlbumId(id).size();
         return AlbumResponse.fromAlbum(album, songCount);
     }
+
+    // Métodos públicos que solo retornan contenido publicado
+    public List<Album> getRecentPublishedAlbums() {
+        return albumRepository.findTop20ByPublishedTrueOrderByCreatedAtDesc();
+    }
 }
