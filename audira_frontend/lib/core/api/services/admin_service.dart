@@ -1,265 +1,226 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import '../api_client.dart';
 import '../../../config/constants.dart';
-import '../../models/api_response.dart';
 import '../../models/user.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Service for admin user management operations
 /// GA01-164: Buscar/editar usuario (roles, estado)
 /// GA01-165: Suspender/reactivar cuentas
 class AdminService {
-  final String baseUrl = ApiConstants.baseUrl;
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
-
-  /// Get authorization header with JWT token
-  Future<Map<String, String>> _getHeaders() async {
-    final token = await _storage.read(key: 'jwt_token');
-    return {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      if (token != null) 'Authorization': 'Bearer $token',
-    };
-  }
+  final ApiClient _apiClient = ApiClient();
 
   /// Get all users (admin endpoint)
   /// GA01-164: Buscar/editar usuario
   Future<ApiResponse<List<User>>> getAllUsersAdmin() async {
-    try {
-      final headers = await _getHeaders();
-      final response = await http.get(
-        Uri.parse('$baseUrl/admin/users'),
-        headers: headers,
-      );
+    final response = await _apiClient.get(
+      '/api/admin/users',
+      requiresAuth: true,
+    );
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        final users = data.map((json) => User.fromJson(json)).toList();
-        return ApiResponse.success(users);
-      } else {
-        final error = _extractError(response);
-        return ApiResponse.error(error);
+    if (response.success && response.data != null) {
+      try {
+        final List<dynamic> usersJson = response.data as List<dynamic>;
+        final users = usersJson
+            .map((json) => User.fromJson(json as Map<String, dynamic>))
+            .toList();
+        return ApiResponse(success: true, data: users);
+      } catch (e) {
+        return ApiResponse(success: false, error: 'Error al parsear usuarios: $e');
       }
-    } catch (e) {
-      return ApiResponse.error('Error loading users: $e');
     }
+    return ApiResponse(success: false, error: response.error);
   }
 
   /// Get user by ID (admin endpoint)
   /// GA01-164: Buscar/editar usuario
   Future<ApiResponse<User>> getUserByIdAdmin(int userId) async {
-    try {
-      final headers = await _getHeaders();
-      final response = await http.get(
-        Uri.parse('$baseUrl/admin/users/$userId'),
-        headers: headers,
-      );
+    final response = await _apiClient.get(
+      '/api/admin/users/$userId',
+      requiresAuth: true,
+    );
 
-      if (response.statusCode == 200) {
-        final user = User.fromJson(json.decode(response.body));
-        return ApiResponse.success(user);
-      } else {
-        final error = _extractError(response);
-        return ApiResponse.error(error);
+    if (response.success && response.data != null) {
+      try {
+        return ApiResponse(
+          success: true,
+          data: User.fromJson(response.data as Map<String, dynamic>),
+        );
+      } catch (e) {
+        return ApiResponse(success: false, error: 'Error al parsear usuario: $e');
       }
-    } catch (e) {
-      return ApiResponse.error('Error loading user: $e');
     }
+    return ApiResponse(success: false, error: response.error);
   }
 
   /// Change user role
   /// GA01-164: Buscar/editar usuario (roles, estado)
   Future<ApiResponse<User>> changeUserRole(int userId, String newRole) async {
-    try {
-      final headers = await _getHeaders();
-      final response = await http.put(
-        Uri.parse('$baseUrl/admin/users/$userId/role'),
-        headers: headers,
-        body: json.encode({'role': newRole}),
-      );
+    final response = await _apiClient.put(
+      '/api/admin/users/$userId/role',
+      body: {'role': newRole},
+      requiresAuth: true,
+    );
 
-      if (response.statusCode == 200) {
-        final user = User.fromJson(json.decode(response.body));
-        return ApiResponse.success(user);
-      } else {
-        final error = _extractError(response);
-        return ApiResponse.error(error);
+    if (response.success && response.data != null) {
+      try {
+        return ApiResponse(
+          success: true,
+          data: User.fromJson(response.data as Map<String, dynamic>),
+        );
+      } catch (e) {
+        return ApiResponse(success: false, error: 'Error al cambiar rol: $e');
       }
-    } catch (e) {
-      return ApiResponse.error('Error changing user role: $e');
     }
+    return ApiResponse(success: false, error: response.error);
   }
 
   /// Change user active status
   /// GA01-165: Suspender/reactivar cuentas
   Future<ApiResponse<User>> changeUserStatus(int userId, bool isActive) async {
-    try {
-      final headers = await _getHeaders();
-      final response = await http.put(
-        Uri.parse('$baseUrl/admin/users/$userId/status'),
-        headers: headers,
-        body: json.encode({'isActive': isActive}),
-      );
+    final response = await _apiClient.put(
+      '/api/admin/users/$userId/status',
+      body: {'isActive': isActive},
+      requiresAuth: true,
+    );
 
-      if (response.statusCode == 200) {
-        final user = User.fromJson(json.decode(response.body));
-        return ApiResponse.success(user);
-      } else {
-        final error = _extractError(response);
-        return ApiResponse.error(error);
+    if (response.success && response.data != null) {
+      try {
+        return ApiResponse(
+          success: true,
+          data: User.fromJson(response.data as Map<String, dynamic>),
+        );
+      } catch (e) {
+        return ApiResponse(success: false, error: 'Error al cambiar estado: $e');
       }
-    } catch (e) {
-      return ApiResponse.error('Error changing user status: $e');
     }
+    return ApiResponse(success: false, error: response.error);
   }
 
   /// Suspend user account (shortcut)
   /// GA01-165: Suspender/reactivar cuentas
   Future<ApiResponse<User>> suspendUser(int userId) async {
-    try {
-      final headers = await _getHeaders();
-      final response = await http.put(
-        Uri.parse('$baseUrl/admin/users/$userId/suspend'),
-        headers: headers,
-      );
+    final response = await _apiClient.put(
+      '/api/admin/users/$userId/suspend',
+      requiresAuth: true,
+    );
 
-      if (response.statusCode == 200) {
-        final user = User.fromJson(json.decode(response.body));
-        return ApiResponse.success(user);
-      } else {
-        final error = _extractError(response);
-        return ApiResponse.error(error);
+    if (response.success && response.data != null) {
+      try {
+        return ApiResponse(
+          success: true,
+          data: User.fromJson(response.data as Map<String, dynamic>),
+        );
+      } catch (e) {
+        return ApiResponse(success: false, error: 'Error al suspender usuario: $e');
       }
-    } catch (e) {
-      return ApiResponse.error('Error suspending user: $e');
     }
+    return ApiResponse(success: false, error: response.error);
   }
 
   /// Activate user account (shortcut)
   /// GA01-165: Suspender/reactivar cuentas
   Future<ApiResponse<User>> activateUser(int userId) async {
-    try {
-      final headers = await _getHeaders();
-      final response = await http.put(
-        Uri.parse('$baseUrl/admin/users/$userId/activate'),
-        headers: headers,
-      );
+    final response = await _apiClient.put(
+      '/api/admin/users/$userId/activate',
+      requiresAuth: true,
+    );
 
-      if (response.statusCode == 200) {
-        final user = User.fromJson(json.decode(response.body));
-        return ApiResponse.success(user);
-      } else {
-        final error = _extractError(response);
-        return ApiResponse.error(error);
+    if (response.success && response.data != null) {
+      try {
+        return ApiResponse(
+          success: true,
+          data: User.fromJson(response.data as Map<String, dynamic>),
+        );
+      } catch (e) {
+        return ApiResponse(success: false, error: 'Error al activar usuario: $e');
       }
-    } catch (e) {
-      return ApiResponse.error('Error activating user: $e');
     }
+    return ApiResponse(success: false, error: response.error);
   }
 
   /// Get user statistics
   /// GA01-164: Buscar/editar usuario
   Future<ApiResponse<Map<String, dynamic>>> getUserStatistics() async {
-    try {
-      final headers = await _getHeaders();
-      final response = await http.get(
-        Uri.parse('$baseUrl/admin/users/stats'),
-        headers: headers,
-      );
+    final response = await _apiClient.get(
+      '/api/admin/users/stats',
+      requiresAuth: true,
+    );
 
-      if (response.statusCode == 200) {
-        final stats = json.decode(response.body) as Map<String, dynamic>;
-        return ApiResponse.success(stats);
-      } else {
-        final error = _extractError(response);
-        return ApiResponse.error(error);
+    if (response.success && response.data != null) {
+      try {
+        return ApiResponse(
+          success: true,
+          data: response.data as Map<String, dynamic>,
+        );
+      } catch (e) {
+        return ApiResponse(success: false, error: 'Error al cargar estadísticas: $e');
       }
-    } catch (e) {
-      return ApiResponse.error('Error loading statistics: $e');
     }
+    return ApiResponse(success: false, error: response.error);
   }
 
   /// Search users
   /// GA01-164: Buscar/editar usuario
   Future<ApiResponse<List<User>>> searchUsers(String query) async {
-    try {
-      final headers = await _getHeaders();
-      final response = await http.get(
-        Uri.parse('$baseUrl/admin/users/search?query=$query'),
-        headers: headers,
-      );
+    final response = await _apiClient.get(
+      '/api/admin/users/search',
+      queryParameters: {'query': query},
+      requiresAuth: true,
+    );
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        final users = data.map((json) => User.fromJson(json)).toList();
-        return ApiResponse.success(users);
-      } else {
-        final error = _extractError(response);
-        return ApiResponse.error(error);
+    if (response.success && response.data != null) {
+      try {
+        final List<dynamic> usersJson = response.data as List<dynamic>;
+        final users = usersJson
+            .map((json) => User.fromJson(json as Map<String, dynamic>))
+            .toList();
+        return ApiResponse(success: true, data: users);
+      } catch (e) {
+        return ApiResponse(success: false, error: 'Error al buscar usuarios: $e');
       }
-    } catch (e) {
-      return ApiResponse.error('Error searching users: $e');
     }
+    return ApiResponse(success: false, error: response.error);
   }
 
   /// Get users by role
   /// GA01-164: Buscar/editar usuario
   Future<ApiResponse<List<User>>> getUsersByRole(String role) async {
-    try {
-      final headers = await _getHeaders();
-      final response = await http.get(
-        Uri.parse('$baseUrl/admin/users/by-role/$role'),
-        headers: headers,
-      );
+    final response = await _apiClient.get(
+      '/api/admin/users/by-role/$role',
+      requiresAuth: true,
+    );
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        final users = data.map((json) => User.fromJson(json)).toList();
-        return ApiResponse.success(users);
-      } else {
-        final error = _extractError(response);
-        return ApiResponse.error(error);
+    if (response.success && response.data != null) {
+      try {
+        final List<dynamic> usersJson = response.data as List<dynamic>;
+        final users = usersJson
+            .map((json) => User.fromJson(json as Map<String, dynamic>))
+            .toList();
+        return ApiResponse(success: true, data: users);
+      } catch (e) {
+        return ApiResponse(success: false, error: 'Error al cargar usuarios por rol: $e');
       }
-    } catch (e) {
-      return ApiResponse.error('Error loading users by role: $e');
     }
+    return ApiResponse(success: false, error: response.error);
   }
 
   /// Verify user email (admin action)
   /// GA01-164: Buscar/editar usuario
   Future<ApiResponse<User>> verifyUserEmail(int userId) async {
-    try {
-      final headers = await _getHeaders();
-      final response = await http.put(
-        Uri.parse('$baseUrl/admin/users/$userId/verify'),
-        headers: headers,
-      );
+    final response = await _apiClient.put(
+      '/api/admin/users/$userId/verify',
+      requiresAuth: true,
+    );
 
-      if (response.statusCode == 200) {
-        final user = User.fromJson(json.decode(response.body));
-        return ApiResponse.success(user);
-      } else {
-        final error = _extractError(response);
-        return ApiResponse.error(error);
+    if (response.success && response.data != null) {
+      try {
+        return ApiResponse(
+          success: true,
+          data: User.fromJson(response.data as Map<String, dynamic>),
+        );
+      } catch (e) {
+        return ApiResponse(success: false, error: 'Error al verificar usuario: $e');
       }
-    } catch (e) {
-      return ApiResponse.error('Error verifying user: $e');
     }
-  }
-
-  /// Extract error message from response
-  String _extractError(http.Response response) {
-    try {
-      final data = json.decode(response.body);
-      if (data is Map && data.containsKey('message')) {
-        return data['message'];
-      }
-      if (data is Map && data.containsKey('error')) {
-        return data['error'];
-      }
-      return 'Error: ${response.statusCode}';
-    } catch (e) {
-      return 'Error: ${response.statusCode} - ${response.body}';
-    }
+    return ApiResponse(success: false, error: response.error);
   }
 }
