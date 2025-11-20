@@ -555,4 +555,183 @@ public class UserService {
             throw new RuntimeException("Error al subir la imagen de banner: " + e.getMessage());
         }
     }
+
+    // Admin-specific methods for user management
+    // GA01-164: Buscar/editar usuario (roles, estado)
+    // GA01-165: Suspender/reactivar cuentas
+
+    /**
+     * Change user role (Admin operation)
+     * GA01-164: Buscar/editar usuario (roles, estado)
+     */
+    @Transactional
+    public UserDTO changeUserRole(Long userId, UserRole newRole) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Check if role is actually changing
+        if (user.getRole() == newRole) {
+            return mapToDTO(user);
+        }
+
+        // Get current role for logging
+        UserRole oldRole = user.getRole();
+
+        // Delete old user entity
+        userRepository.delete(user);
+        userRepository.flush();
+
+        // Create new user entity based on new role
+        User newUser;
+        if (newRole == UserRole.ARTIST) {
+            newUser = Artist.builder()
+                    .id(user.getId())
+                    .email(user.getEmail())
+                    .username(user.getUsername())
+                    .password(user.getPassword())
+                    .firstName(user.getFirstName())
+                    .lastName(user.getLastName())
+                    .role(newRole)
+                    .uid(user.getUid())
+                    .bio(user.getBio())
+                    .profileImageUrl(user.getProfileImageUrl())
+                    .bannerImageUrl(user.getBannerImageUrl())
+                    .location(user.getLocation())
+                    .website(user.getWebsite())
+                    .twitterUrl(user.getTwitterUrl())
+                    .instagramUrl(user.getInstagramUrl())
+                    .facebookUrl(user.getFacebookUrl())
+                    .youtubeUrl(user.getYoutubeUrl())
+                    .spotifyUrl(user.getSpotifyUrl())
+                    .tiktokUrl(user.getTiktokUrl())
+                    .isActive(user.getIsActive())
+                    .isVerified(user.getIsVerified())
+                    .followerIds(user.getFollowerIds())
+                    .followingIds(user.getFollowingIds())
+                    .createdAt(user.getCreatedAt())
+                    .build();
+        } else {
+            newUser = RegularUser.builder()
+                    .id(user.getId())
+                    .email(user.getEmail())
+                    .username(user.getUsername())
+                    .password(user.getPassword())
+                    .firstName(user.getFirstName())
+                    .lastName(user.getLastName())
+                    .role(newRole)
+                    .uid(user.getUid())
+                    .bio(user.getBio())
+                    .profileImageUrl(user.getProfileImageUrl())
+                    .bannerImageUrl(user.getBannerImageUrl())
+                    .location(user.getLocation())
+                    .website(user.getWebsite())
+                    .twitterUrl(user.getTwitterUrl())
+                    .instagramUrl(user.getInstagramUrl())
+                    .facebookUrl(user.getFacebookUrl())
+                    .youtubeUrl(user.getYoutubeUrl())
+                    .spotifyUrl(user.getSpotifyUrl())
+                    .tiktokUrl(user.getTiktokUrl())
+                    .isActive(user.getIsActive())
+                    .isVerified(user.getIsVerified())
+                    .followerIds(user.getFollowerIds())
+                    .followingIds(user.getFollowingIds())
+                    .createdAt(user.getCreatedAt())
+                    .build();
+        }
+
+        newUser = userRepository.save(newUser);
+
+        logger.info("User role changed: {} ({}) - {} -> {}",
+                    user.getUsername(), user.getEmail(), oldRole, newRole);
+
+        return mapToDTO(newUser);
+    }
+
+    /**
+     * Change user active status (Admin operation)
+     * GA01-165: Suspender/reactivar cuentas
+     */
+    @Transactional
+    public UserDTO changeUserStatus(Long userId, Boolean isActive) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setIsActive(isActive);
+        user = userRepository.save(user);
+
+        String action = isActive ? "activated" : "suspended";
+        logger.info("User account {}: {} ({})", action, user.getUsername(), user.getEmail());
+
+        return mapToDTO(user);
+    }
+
+    /**
+     * Get user statistics for admin dashboard
+     * GA01-164: Buscar/editar usuario
+     */
+    public Map<String, Object> getUserStatistics() {
+        List<User> allUsers = userRepository.findAll();
+
+        long totalUsers = allUsers.size();
+        long activeUsers = allUsers.stream().filter(User::getIsActive).count();
+        long inactiveUsers = totalUsers - activeUsers;
+        long verifiedUsers = allUsers.stream().filter(User::getIsVerified).count();
+
+        long regularUsers = allUsers.stream()
+                .filter(u -> u.getRole() == UserRole.USER)
+                .count();
+        long artists = allUsers.stream()
+                .filter(u -> u.getRole() == UserRole.ARTIST)
+                .count();
+        long admins = allUsers.stream()
+                .filter(u -> u.getRole() == UserRole.ADMIN)
+                .count();
+
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("totalUsers", totalUsers);
+        stats.put("activeUsers", activeUsers);
+        stats.put("inactiveUsers", inactiveUsers);
+        stats.put("verifiedUsers", verifiedUsers);
+        stats.put("unverifiedUsers", totalUsers - verifiedUsers);
+        stats.put("regularUsers", regularUsers);
+        stats.put("artists", artists);
+        stats.put("admins", admins);
+
+        return stats;
+    }
+
+    /**
+     * Search users by query (username, email, or name)
+     * GA01-164: Buscar/editar usuario
+     */
+    public List<UserDTO> searchUsers(String query) {
+        String lowerQuery = query.toLowerCase();
+        List<User> allUsers = userRepository.findAll();
+
+        return allUsers.stream()
+                .filter(user ->
+                    user.getUsername().toLowerCase().contains(lowerQuery) ||
+                    user.getEmail().toLowerCase().contains(lowerQuery) ||
+                    user.getFirstName().toLowerCase().contains(lowerQuery) ||
+                    user.getLastName().toLowerCase().contains(lowerQuery))
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Admin verify user email
+     * GA01-164: Buscar/editar usuario
+     */
+    @Transactional
+    public UserDTO adminVerifyUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setIsVerified(true);
+        user = userRepository.save(user);
+
+        logger.info("User verified by admin: {} ({})", user.getUsername(), user.getEmail());
+
+        return mapToDTO(user);
+    }
 }
