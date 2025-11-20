@@ -16,10 +16,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +36,10 @@ public class UserService {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
     private final FileServiceClient fileServiceClient;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     @Transactional
@@ -140,6 +147,9 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        // Refresh entity to get latest version from database (prevents optimistic locking errors)
+        entityManager.refresh(user);
+
         if (request.getFirstName() != null) {
             user.setFirstName(request.getFirstName());
         }
@@ -229,6 +239,9 @@ public class UserService {
     public UserDTO updateProfile(Long userId, Map<String, Object> updates) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Refresh entity to get latest version from database (prevents optimistic locking errors)
+        entityManager.refresh(user);
 
         if (updates.containsKey("firstName")) {
             user.setFirstName((String) updates.get("firstName"));
