@@ -132,4 +132,21 @@ public class SongService {
         song.setPublished(published);
         return songRepository.save(song);
     }
+
+    // Métodos públicos que solo retornan contenido publicado
+    public List<Song> getRecentPublishedSongs() {
+        return songRepository.findTop20ByPublishedTrueOrderByCreatedAtDesc();
+    }
+
+    public List<Song> getTopPublishedSongsByPlays() {
+        return songRepository.findTopPublishedByPlays();
+    }
+
+    public List<Song> searchPublishedSongs(String query) {
+        return songRepository.searchPublishedByTitleOrArtist(query);
+    }
+
+    public List<Song> getPublishedSongsByGenre(Long genreId) {
+        return songRepository.findPublishedByGenreId(genreId);
+    }
 }
