@@ -213,7 +213,7 @@ class DownloadService {
   Future<int> getAvailableSpace() async {
     try {
       final dir = await getDownloadsDirectory();
-      final stat = await dir.stat();
+      await dir.stat();
       // Nota: stat no proporciona espacio disponible directamente
       // Se necesitaría un plugin adicional como disk_space
       return 1024 * 1024 * 1024; // 1 GB por defecto

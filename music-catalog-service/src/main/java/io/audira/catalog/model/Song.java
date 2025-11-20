@@ -48,7 +48,11 @@ public class Song extends Product {
 
     @Column(length = 100)
     private String category; // Category: Single, Album, EP, Remix, Cover, etc.
-    
+
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean published = false;
+
     @Override
     public String getProductType() {
         return "SONG";

@@ -18,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -133,8 +135,9 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    public List<UserDTO> getUsersByRole(UserRole role) {
-        return userRepository.findByRole(role).stream()
+    public List<UserDTO> getUsersByRole(String role) {
+        UserRole userRole = UserRole.valueOf(role.toUpperCase());
+        return userRepository.findByRole(userRole).stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }

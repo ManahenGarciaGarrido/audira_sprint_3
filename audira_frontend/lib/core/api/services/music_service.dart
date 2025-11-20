@@ -144,6 +144,15 @@ class MusicService {
     return ApiResponse(success: false, error: response.error);
   }
 
+  // GA01-151: Update Song (Artist only)
+  Future<ApiResponse<Song>> updateSong(int id, Map<String, dynamic> songData) async {
+    final response = await _apiClient.put('${AppConstants.songsUrl}/$id', body: songData);
+    if (response.success && response.data != null) {
+      return ApiResponse(success: true, data: Song.fromJson(response.data));
+    }
+    return ApiResponse(success: false, error: response.error);
+  }
+
   // Update Album (Artist only)
   Future<ApiResponse<Album>> updateAlbum(int id, Map<String, dynamic> albumData) async {
     final response = await _apiClient.put('${AppConstants.albumsUrl}/$id', body: albumData);
@@ -164,6 +173,17 @@ class MusicService {
     return ApiResponse(success: false, error: response.error);
   }
 
+  // GA01-152: Publish/Unpublish Song (Artist only)
+  Future<ApiResponse<Song>> publishSong(int id, bool published) async {
+    final response = await _apiClient.patch(
+      '${AppConstants.songsUrl}/$id/publish?published=$published',
+    );
+    if (response.success && response.data != null) {
+      return ApiResponse(success: true, data: Song.fromJson(response.data));
+    }
+    return ApiResponse(success: false, error: response.error);
+  }
+
   // Upload Album Cover (Artist only)
   Future<ApiResponse<String>> uploadAlbumCover(int albumId, String filePath) async {
     final response = await _apiClient.uploadFile(
@@ -173,6 +193,52 @@ class MusicService {
     );
     if (response.success && response.data != null) {
       return ApiResponse(success: true, data: response.data as String);
+    }
+    return ApiResponse(success: false, error: response.error);
+  }
+
+  // Public endpoints - Solo retornan contenido publicado
+  Future<ApiResponse<List<Song>>> getRecentPublishedSongs() async {
+    final response = await _apiClient.get('${AppConstants.songsUrl}/public/recent', requiresAuth: false);
+    if (response.success && response.data != null) {
+      final songs = (response.data as List).map((json) => Song.fromJson(json)).toList();
+      return ApiResponse(success: true, data: songs);
+    }
+    return ApiResponse(success: false, error: response.error);
+  }
+
+  Future<ApiResponse<List<Song>>> getTopPublishedSongs() async {
+    final response = await _apiClient.get('${AppConstants.songsUrl}/public/top', requiresAuth: false);
+    if (response.success && response.data != null) {
+      final songs = (response.data as List).map((json) => Song.fromJson(json)).toList();
+      return ApiResponse(success: true, data: songs);
+    }
+    return ApiResponse(success: false, error: response.error);
+  }
+
+  Future<ApiResponse<List<Song>>> searchPublishedSongs(String query) async {
+    final response = await _apiClient.get('${AppConstants.songsUrl}/public/search?query=$query', requiresAuth: false);
+    if (response.success && response.data != null) {
+      final songs = (response.data as List).map((json) => Song.fromJson(json)).toList();
+      return ApiResponse(success: true, data: songs);
+    }
+    return ApiResponse(success: false, error: response.error);
+  }
+
+  Future<ApiResponse<List<Song>>> getPublishedSongsByGenre(int genreId) async {
+    final response = await _apiClient.get('${AppConstants.songsUrl}/public/genre/$genreId', requiresAuth: false);
+    if (response.success && response.data != null) {
+      final songs = (response.data as List).map((json) => Song.fromJson(json)).toList();
+      return ApiResponse(success: true, data: songs);
+    }
+    return ApiResponse(success: false, error: response.error);
+  }
+
+  Future<ApiResponse<List<Album>>> getRecentPublishedAlbums() async {
+    final response = await _apiClient.get('${AppConstants.albumsUrl}/public/latest-releases', requiresAuth: false);
+    if (response.success && response.data != null) {
+      final albums = (response.data as List).map((json) => Album.fromJson(json)).toList();
+      return ApiResponse(success: true, data: albums);
     }
     return ApiResponse(success: false, error: response.error);
   }

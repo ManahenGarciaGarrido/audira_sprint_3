@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../config/theme.dart';
 import '../../../core/api/services/music_service.dart';
-import '../../../core/api/services/discovery_service.dart';
 import '../../../core/models/song.dart';
 import '../../../core/models/album.dart';
 import '../../../core/models/genre.dart';
@@ -19,7 +18,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final MusicService _musicService = MusicService();
-  final DiscoveryService _discoveryService = DiscoveryService();
 
   List<Song> _featuredSongs = [];
   List<Album> _featuredAlbums = [];
@@ -35,16 +33,17 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
 
-    final songsResponse = await _discoveryService.getTrendingSongs(limit: 10);
-    final albumsResponse = await _discoveryService.getLatestReleases(limit: 10);
+    // Solo mostrar contenido publicado en la pantalla de inicio
+    final songsResponse = await _musicService.getTopPublishedSongs();
+    final albumsResponse = await _musicService.getRecentPublishedAlbums();
     final genresResponse = await _musicService.getAllGenres();
 
     if (songsResponse.success && songsResponse.data != null) {
-      _featuredSongs = songsResponse.data!;
+      _featuredSongs = songsResponse.data!.take(10).toList();
     }
 
     if (albumsResponse.success && albumsResponse.data != null) {
-      _featuredAlbums = albumsResponse.data!;
+      _featuredAlbums = albumsResponse.data!.take(10).toList();
     }
 
     if (genresResponse.success && genresResponse.data != null) {

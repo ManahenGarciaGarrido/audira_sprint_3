@@ -1000,12 +1000,7 @@ public class ChangeStatusRequest {
 }
 ```
 
-**Nota**: Los endpoints de suspender/reactivar ya están incluidos en el `AdminController.java` creado en GA01-164:
-- `PUT /api/admin/users/{userId}/status` - Cambiar estado (genérico)
-- `PUT /api/admin/users/{userId}/suspend` - Atajo para suspender
-- `PUT /api/admin/users/{userId}/activate` - Atajo para activar
-
-Y el método `changeUserStatus()` ya está incluido en `UserService.java` (ver GA01-164).
+**Nota**: Fijarse en los archivos creados en la subtarea GA01-164 e incluir los métodos correspondientes necesarios para esta subtarea
 
 ---
 

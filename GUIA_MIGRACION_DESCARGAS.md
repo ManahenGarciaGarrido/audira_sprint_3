@@ -3,7 +3,7 @@
 Esta guía detalla **TODOS** los cambios necesarios para implementar las funcionalidades de descargas de música, organizados por subtarea para facilitar la migración al repositorio original de GitHub.
 
 ---
-
+ 
 ## 📋 Índice de Subtareas
 
 1. [GA01-135: Botón y permisos (solo si comprado)](#ga01-135-botón-y-permisos-solo-si-comprado)

@@ -83,4 +83,11 @@ public class AlbumController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    // Endpoints públicos que solo retornan contenido publicado
+    @GetMapping("/public/latest-releases")
+    public ResponseEntity<List<Album>> getLatestPublishedReleases(@RequestParam(defaultValue = "20") int limit) {
+        List<Album> albums = albumService.getRecentPublishedAlbums();
+        return ResponseEntity.ok(albums.stream().limit(limit).toList());
+    }
 }

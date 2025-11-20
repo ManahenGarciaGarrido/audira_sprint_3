@@ -33,6 +33,7 @@ class _UploadSongScreenState extends State<UploadSongScreen> {
   bool _showPreview = false;
   bool _isUploading = false;
   bool _isLoadingGenres = true;
+  bool _publishNow = true; // Publicar inmediatamente por defecto
   double _uploadProgress = 0.0;
   String? _audioFileName;
   String? _audioFilePath;
@@ -287,6 +288,7 @@ class _UploadSongScreenState extends State<UploadSongScreen> {
             ? null
             : _categoryController.text.trim(),
         'genreIds': _selectedGenreIds,
+        'published': _publishNow, // Incluir estado de publicación
         'plays': 0,
         'productType': 'SONG',
         'collaborators': _collaborators,
@@ -752,6 +754,34 @@ class _UploadSongScreenState extends State<UploadSongScreen> {
                 ),
               ],
             ).animate().fadeIn(delay: 250.ms),
+            const SizedBox(height: 24),
+
+            // Publicar inmediatamente
+            Card(
+              child: SwitchListTile(
+                title: const Text(
+                  '¿Publicar inmediatamente?',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(
+                  _publishNow
+                      ? 'La canción será visible para todos los usuarios'
+                      : 'La canción quedará oculta hasta que la publiques manualmente',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                ),
+                value: _publishNow,
+                onChanged: (value) {
+                  setState(() {
+                    _publishNow = value;
+                  });
+                },
+                activeThumbColor: AppTheme.primaryBlue,
+                secondary: Icon(
+                  _publishNow ? Icons.visibility : Icons.visibility_off,
+                  color: _publishNow ? AppTheme.primaryBlue : Colors.grey,
+                ),
+              ),
+            ).animate().fadeIn(delay: 275.ms),
             const SizedBox(height: 24),
 
             // Upload Button
