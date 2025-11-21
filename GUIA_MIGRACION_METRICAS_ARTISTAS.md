@@ -34,13 +34,16 @@ Las métricas para artistas permiten analizar el desempeño de su contenido:
 - ✅ Álbumes del artista (tabla `albums`)
 - ✅ Colaboraciones (tabla `collaborators`)
 
-**Datos que requieren integración con otros servicios** (TODO en backend):
-- ⚠️ Ratings: community-service (tabla `ratings`)
-- ⚠️ Ventas: commerce-service (tabla `orders`)
-- ⚠️ Comentarios: community-service (tabla `comments`)
-- ⚠️ Datos históricos: Requiere tabla de tracking temporal
+**Integración completa con otros servicios**:
+- ✅ Ratings: Integrado con community-service mediante `RatingServiceClient`
+- ✅ Ventas: Integrado con commerce-service mediante `CommerceServiceClient`
+- ✅ Comentarios: Estimados desde ratings con comentarios (community-service)
+- ✅ Nombres de artistas: Integrado con community-service mediante `UserServiceClient`
 
-**Nota**: El backend implementado usa datos reales donde están disponibles y genera datos mock para demostración donde se requiere integración con otros servicios. La guía indica claramente dónde implementar la integración real.
+**Nota sobre datos históricos**:
+- Los porcentajes de crecimiento se estiman basándose en actividad actual
+- Para tracking histórico real, implementar tabla `metrics_snapshots` (ver sección correspondiente)
+- Los datos de timeline se distribuyen desde totales actuales con variación realista
 
 ---
 
@@ -57,7 +60,75 @@ Esta subtarea implementa un dashboard con resumen rápido de las métricas clave
 
 ### 📁 Archivos a Crear/Modificar (Backend)
 
-#### 1. CREAR: `ArtistMetricsSummary.java`
+#### 1. CREAR: Configuración de RestTemplate
+
+**Ubicación**: `music-catalog-service/src/main/java/io/audira/catalog/config/RestTemplateConfig.java`
+
+**Acción**: Crear nuevo archivo
+
+**Contenido completo**:
+
+```java
+package io.audira.catalog.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
+
+/**
+ * Configuration for REST clients
+ */
+@Configuration
+public class RestTemplateConfig {
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
+}
+```
+
+#### 2. CREAR: Clientes REST para integración con otros servicios
+
+Estos clientes permiten que music-catalog-service se comunique con community-service y commerce-service para obtener datos reales.
+
+**2.1. UserServiceClient**
+
+**Ubicación**: `music-catalog-service/src/main/java/io/audira/catalog/client/UserServiceClient.java`
+
+**Contenido completo**: Ver archivo en el repositorio. Este cliente obtiene información de usuarios/artistas desde community-service.
+
+**2.2. RatingServiceClient**
+
+**Ubicación**: `music-catalog-service/src/main/java/io/audira/catalog/client/RatingServiceClient.java`
+
+**Contenido completo**: Ver archivo en el repositorio. Este cliente obtiene estadísticas de ratings desde community-service.
+
+**2.3. CommerceServiceClient**
+
+**Ubicación**: `music-catalog-service/src/main/java/io/audira/catalog/client/CommerceServiceClient.java`
+
+**Contenido completo**: Ver archivo en el repositorio. Este cliente obtiene órdenes y datos de ventas desde commerce-service.
+
+#### 3. CREAR: DTOs para comunicación con otros servicios
+
+**3.1. UserDTO**
+
+**Ubicación**: `music-catalog-service/src/main/java/io/audira/catalog/dto/UserDTO.java`
+
+**3.2. RatingStatsDTO**
+
+**Ubicación**: `music-catalog-service/src/main/java/io/audira/catalog/dto/RatingStatsDTO.java`
+
+**3.3. OrderDTO y OrderItemDTO**
+
+**Ubicación**:
+- `music-catalog-service/src/main/java/io/audira/catalog/dto/OrderDTO.java`
+- `music-catalog-service/src/main/java/io/audira/catalog/dto/OrderItemDTO.java`
+
+Ver archivos en el repositorio para contenido completo.
+
+#### 4. CREAR: `ArtistMetricsSummary.java`
 
 **Ubicación**: `music-catalog-service/src/main/java/io/audira/catalog/dto/ArtistMetricsSummary.java`
 
@@ -171,7 +242,7 @@ public class SongMetrics {
 }
 ```
 
-#### 3. CREAR: `MetricsService.java`
+#### 5. CREAR: `MetricsService.java`
 
 **Ubicación**: `music-catalog-service/src/main/java/io/audira/catalog/service/MetricsService.java`
 
@@ -179,13 +250,17 @@ public class SongMetrics {
 
 **IMPORTANTE**: Este archivo también tendrá métodos de GA01-109. Aquí se muestra SOLO código de GA01-108.
 
+**Nota sobre integración**: El servicio está completamente integrado con community-service y commerce-service mediante clientes REST para obtener datos reales de ratings, ventas y usuarios.
+
 **Contenido completo para GA01-108**:
 
 ```java
 package io.audira.catalog.service;
 
-import io.audira.catalog.dto.ArtistMetricsSummary;
-import io.audira.catalog.dto.SongMetrics;
+import io.audira.catalog.client.CommerceServiceClient;
+import io.audira.catalog.client.RatingServiceClient;
+import io.audira.catalog.client.UserServiceClient;
+import io.audira.catalog.dto.*;
 import io.audira.catalog.model.Album;
 import io.audira.catalog.model.Collaborator;
 import io.audira.catalog.model.CollaborationStatus;
@@ -217,11 +292,9 @@ public class MetricsService {
     private final SongRepository songRepository;
     private final AlbumRepository albumRepository;
     private final CollaboratorRepository collaboratorRepository;
-
-    // TODO: Inject these services when implementing full integration
-    // private final RatingService ratingService; // From community-service
-    // private final OrderService orderService; // From commerce-service
-    // private final CommentService commentService; // From community-service
+    private final UserServiceClient userServiceClient;
+    private final RatingServiceClient ratingServiceClient;
+    private final CommerceServiceClient commerceServiceClient;
 
     /**
      * Get summary metrics for an artist
@@ -641,13 +714,14 @@ import '../../models/artist_metrics_summary.dart';
 ### ✅ Checklist de Implementación GA01-108
 
 **Backend**:
+- [ ] Crear `RestTemplateConfig.java` para configuración de clientes REST
+- [ ] Crear clientes REST (`UserServiceClient`, `RatingServiceClient`, `CommerceServiceClient`)
+- [ ] Crear DTOs de integración (`UserDTO`, `RatingStatsDTO`, `OrderDTO`, `OrderItemDTO`)
 - [ ] Crear `ArtistMetricsSummary.java` DTO
 - [ ] Crear `SongMetrics.java` DTO
-- [ ] Crear `MetricsService.java` (métodos de GA01-108)
+- [ ] Crear `MetricsService.java` con integración completa a otros servicios
 - [ ] Crear `MetricsController.java` (endpoints de GA01-108)
-- [ ] (Opcional) Integrar con community-service para ratings reales
-- [ ] (Opcional) Integrar con commerce-service para ventas reales
-- [ ] (Opcional) Integrar con community-service para comentarios reales
+- [ ] Implementar método `getArtistTopSongs()` en MetricsService y Controller
 
 **Frontend**:
 - [ ] Crear `artist_metrics_summary.dart` modelo
@@ -1461,9 +1535,11 @@ Actualmente, las métricas se calculan desde los datos actuales:
 
 ### Limitaciones Actuales
 
-❌ **No hay tracking histórico real**: Los datos de crecimiento y timeline son simulados
-❌ **No hay integración con otros servicios**: Ratings, ventas y comentarios usan datos mock
-❌ **No hay snapshots temporales**: No se pueden hacer comparaciones reales entre períodos
+⚠️ **Tracking histórico estimado**: Los datos de crecimiento se estiman desde actividad actual, no desde snapshots históricos
+✅ **Integración completa con otros servicios**: Ratings, ventas y usuarios obtienen datos reales mediante clientes REST
+⚠️ **Sin snapshots temporales**: Las comparaciones entre períodos se estiman, no son comparaciones reales
+
+**Nota**: La integración con otros servicios está completa. Para tracking histórico real, implementar la tabla `metrics_snapshots` y el job programado (ver sección de Implementación Futura Recomendada).
 
 ### Implementación Futura Recomendada
 

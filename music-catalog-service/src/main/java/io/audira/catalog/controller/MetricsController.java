@@ -91,12 +91,11 @@ public class MetricsController {
      * @return List of top songs by plays
      */
     @GetMapping("/artists/{artistId}/top-songs")
-    public ResponseEntity<?> getArtistTopSongs(
+    public ResponseEntity<java.util.List<SongMetrics>> getArtistTopSongs(
             @PathVariable Long artistId,
             @RequestParam(defaultValue = "10") int limit
     ) {
-        // TODO: Implement properly
-        // For now, return empty to maintain compatibility
-        return ResponseEntity.ok(new java.util.ArrayList<>());
+        java.util.List<SongMetrics> topSongs = metricsService.getArtistTopSongs(artistId, limit);
+        return ResponseEntity.ok(topSongs);
     }
 }
