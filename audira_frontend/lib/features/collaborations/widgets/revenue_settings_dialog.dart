@@ -74,8 +74,7 @@ class _RevenueSettingsDialogState extends State<RevenueSettingsDialog> {
 
     try {
       final percentage = double.parse(_percentageController.text);
-      final response =
-          await _collaborationService.updateRevenuePercentage(
+      final response = await _collaborationService.updateRevenuePercentage(
         collaborationId: widget.collaboration.id,
         percentage: percentage,
       );
@@ -107,8 +106,7 @@ class _RevenueSettingsDialogState extends State<RevenueSettingsDialog> {
   Widget build(BuildContext context) {
     final entityType = widget.collaboration.isForSong ? 'Canción' : 'Álbum';
     final availablePercentage = _currentTotalRevenue != null
-        ? 100 -
-            (_currentTotalRevenue! - widget.collaboration.revenuePercentage)
+        ? 100 - (_currentTotalRevenue! - widget.collaboration.revenuePercentage)
         : null;
 
     return AlertDialog(
@@ -270,7 +268,7 @@ class _RevenueSettingsDialogState extends State<RevenueSettingsDialog> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimary,
+                  color: AppTheme.textWhite,
                 ),
               ),
               const SizedBox(height: 8),
@@ -287,10 +285,10 @@ class _RevenueSettingsDialogState extends State<RevenueSettingsDialog> {
                       ? 'Máximo disponible: ${availablePercentage.toStringAsFixed(1)}%'
                       : null,
                   helperStyle: TextStyle(
-                    color: availablePercentage != null &&
-                            availablePercentage > 0
-                        ? Colors.green
-                        : Colors.orange,
+                    color:
+                        availablePercentage != null && availablePercentage > 0
+                            ? Colors.green
+                            : Colors.orange,
                   ),
                 ),
                 keyboardType:
@@ -331,8 +329,7 @@ class _RevenueSettingsDialogState extends State<RevenueSettingsDialog> {
                 spacing: 8,
                 runSpacing: 4,
                 children: [10.0, 20.0, 25.0, 33.3, 50.0].map((percentage) {
-                  final isAvailable =
-                      availablePercentage == null ||
+                  final isAvailable = availablePercentage == null ||
                       percentage <= availablePercentage;
                   return ActionChip(
                     label: Text(

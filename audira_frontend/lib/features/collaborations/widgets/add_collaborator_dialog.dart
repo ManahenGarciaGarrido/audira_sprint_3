@@ -172,7 +172,7 @@ class _AddCollaboratorDialogState extends State<AddCollaboratorDialog> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimary,
+                  color: AppTheme.textWhite,
                 ),
               ),
               const SizedBox(height: 8),
@@ -207,7 +207,7 @@ class _AddCollaboratorDialogState extends State<AddCollaboratorDialog> {
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimary,
+                  color: AppTheme.textWhite,
                 ),
               ),
               const SizedBox(height: 8),
@@ -224,7 +224,7 @@ class _AddCollaboratorDialogState extends State<AddCollaboratorDialog> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimary,
+                  color: AppTheme.textWhite,
                 ),
               ),
               const SizedBox(height: 8),
@@ -238,7 +238,7 @@ class _AddCollaboratorDialogState extends State<AddCollaboratorDialog> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimary,
+                  color: AppTheme.textWhite,
                 ),
               ),
               const SizedBox(height: 8),
@@ -377,7 +377,7 @@ class _AddCollaboratorDialogState extends State<AddCollaboratorDialog> {
                 CircleAvatar(
                   backgroundColor: AppTheme.primaryBlue,
                   child: Text(
-                    _selectedArtist!.name.substring(0, 1).toUpperCase(),
+                    _selectedArtist!.firstName!.substring(0, 1).toUpperCase(),
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -390,7 +390,7 @@ class _AddCollaboratorDialogState extends State<AddCollaboratorDialog> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _selectedArtist!.name,
+                        _selectedArtist!.firstName!,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -433,14 +433,14 @@ class _AddCollaboratorDialogState extends State<AddCollaboratorDialog> {
                   leading: CircleAvatar(
                     backgroundColor: AppTheme.primaryBlue,
                     child: Text(
-                      artist.name.substring(0, 1).toUpperCase(),
+                      artist.firstName!.substring(0, 1).toUpperCase(),
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
                   ),
-                  title: Text(artist.name),
+                  title: Text(artist.firstName!),
                   subtitle: Text(
                     '@${artist.username}',
                     style: const TextStyle(color: AppTheme.textGrey),
@@ -449,7 +449,7 @@ class _AddCollaboratorDialogState extends State<AddCollaboratorDialog> {
                   onTap: () {
                     setState(() {
                       _selectedArtist = artist;
-                      _searchController.text = artist.name;
+                      _searchController.text = artist.firstName!;
                       _searchResults = [];
                     });
                   },
@@ -505,7 +505,7 @@ class _AddCollaboratorDialogState extends State<AddCollaboratorDialog> {
     }
 
     return DropdownButtonFormField<int>(
-      value: _selectedEntityId,
+      initialValue: _selectedEntityId,
       decoration: const InputDecoration(
         hintText: 'Selecciona una canción',
         prefixIcon: Icon(Icons.music_note),
@@ -559,7 +559,7 @@ class _AddCollaboratorDialogState extends State<AddCollaboratorDialog> {
     }
 
     return DropdownButtonFormField<int>(
-      value: _selectedEntityId,
+      initialValue: _selectedEntityId,
       decoration: const InputDecoration(
         hintText: 'Selecciona un álbum',
         prefixIcon: Icon(Icons.album),
